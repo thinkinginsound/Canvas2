@@ -1,0 +1,74 @@
+/**
+ * Fix user-agent
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden
+}
+
+/* Theme */
+.navbar#topbar {
+  background: rgb(188,0,208);
+  background: linear-gradient(169deg, rgba(188,0,208,1) 0%, rgba(0,177,217,1) 100%);
+}
+
+.navbar#topbar .navbar-brand{
+  padding:0px;
+}
+
+.navbar#topbar .navbar-brand #navbar-icon-holder{
+  display: inline-block;
+  background: white;
+}
+
+main#pagemain{
+  display: flex;
+  flex-grow: 1;
+}
+
+main#pagemain .sidebar{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  min-width: 200px;
+  background-color: #000000
+}
+main#pagemain .sketchcontainer{
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+main#pagemain .sidebar#sidebar_left{
+}
+main#pagemain .sidebar#sidebar_left #userlist .active{
+  font-weight: bold;
+}
+
+main#pagemain .sidebar#sidebar_right{
+  color:white;
+}
+
+main#pageterms {
+  background: #eee;
+  display: flex;
+  flex-grow: 1;
+  overflow-y: scroll;
+}
+.container{
+  background: #fff;
+  overflow-y: scroll;
+}
+
+.padding {
+  padding: 20px 0px 20px 0px;
+}
