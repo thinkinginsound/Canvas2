@@ -5,6 +5,7 @@ var path = require('path');
 var morgan = require('morgan');
 var healthChecker = require('sc-framework-health-check');
 var settings = require('./lib/settings.js');
+var crypto = require("crypto");
 
 class Worker extends SCWorker {
   run() {
@@ -40,9 +41,9 @@ class Worker extends SCWorker {
       let grouporder;
 
       socket.on('auth_request', function (data, respond) {
-        console.log("Auth Request received");
+        console.log("Auth Request received", data);
         // Create random session string
-        sessionkey = "random_string";
+        sessionkey = crypto.randomBytes(20).toString('hex');;
         sessionstarted = new Date();
         groupid = 0;
         grouporder = 0;
@@ -51,7 +52,14 @@ class Worker extends SCWorker {
           sessionkey: sessionkey,
           groupid: groupid,
           grouporder: grouporder,
-          sessionstarted:sessionstarted
+          sessionstarted:sessionstarted,
+          maxgroups:settings.maxgroups,
+          maxusers:settings.maxusers,
+          canvaswidth:settings.npcCanvasWidth,
+          canvasheight:settings.npcCanvasHeight,
+          sessionstarted:sessionstarted,
+          sessionduration:settings.sessionduration,
+          clockspeed:settings.clockspeed
           // en de rest
         })
         respond({ // Static settings
