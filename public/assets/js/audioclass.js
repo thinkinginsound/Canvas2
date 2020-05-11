@@ -20,6 +20,7 @@ Rhythm:
 */
 
 import { Synthesizer } from "./synthesizer.js"
+import Store from "./Store.js"
 
 class AudioClass{
   constructor(){
@@ -222,7 +223,7 @@ class AudioClass{
 
   //Recusive function to make sure this.speed can be variable
   clocker(){
-    if(window.state.server.ready == false){
+    if(!Store.get("server/ready")){
       if(this.synthesizer === undefined || this.rhythmSynthesizer === undefined || this.rhythmSynthesizer2 === undefined){} else{
         this.synthesizer.noteOffAll(this.chord);
         this.rhythmSynthesizer.noteOffAll(this.chord);

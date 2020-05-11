@@ -7,6 +7,7 @@ Functions:
 import { ErrorModal } from  "./modals/errorModal.js"
 import { EndModal } from  "./modals/endModal.js"
 import { PixelObject } from "./pixelObject.js"
+import Store from "./Store.js"
 
 function createClosure(){
   let i = 1;
@@ -35,14 +36,47 @@ class SocketHandler {
   onClose () {
     console.log("socket closed");
   }
-  onSubscribe () {
-    console.log("socket subscribed");
+  onSubscribe (response) {
+    console.log("socket subscribed", response);
+
+    const authToken = this.socket.authToken;
+    console.log("auth token", authToken);
+    Store.set("server/sessionkey", authToken.sessionkey);
+    Store.set("server/groupid", authToken.groupid);
+    Store.set("server/grouporder", authToken.grouporder);
+    Store.set("server/maxgroups", authToken.maxgroups);
+    Store.set("server/maxusers", authToken.maxusers);
+    Store.set("server/maxPixelsWidth", authToken.canvaswidth);
+    Store.set("server/maxPixelsHeight", authToken.canvasheight);
+    Store.set("server/clockspeed", authToken.clockspeed);
+    Store.set("server/sessionduration", authToken.sessionduration);
+    Store.set("server/sessionstarted", authToken.sessionstarted);
+
+    Store.set("session/currentXPos", authToken.currentXPos);
+    Store.set("session/currentYPos", authToken.currentYPos);
+    Store.set("session/herdingstatus", []);
+    Store.set("session/herdinghistory", new Array(authToken.maxgroups).fill(0));
+    Store.set("session/sheepPercentage", 0);
+    Store.set("session/pixelArray", createArray(authToken.canvaswidth, authToken.canvasheight, -1));
+    Store.set("session/lastPixelPos", [authToken.currentXPos,authToken.currentYPos]);
+
+    for(let xIndex in Store.get("session/pixelArray")){
+      for(let yIndex in Store.get("session/pixelArray")[xIndex]){
+        Store.get("session/pixelArray")[xIndex][yIndex] = new PixelObject(parseInt(xIndex),parseInt(yIndex))
+      }
+    }
+
+    console.log("UserStore", Store);
+    this.bindListeners();
+    Store.set("server/ready", true);
   }
 
   startClientCom () { return new Promise( (res,rej) => {
     const socket = this.socket;
-    this.socket.emit("auth_request", (error, data) => {
-      console.log("auth_request")
+    socket.emit("auth_request", "request", (error, responseData) => {
+      console.log("auth_request", error, responseData);
+      if (error) console.log("error", error)
+
       const channel = this.channel = socket.subscribe("clientcom");
       socket.on("subscribe", (...args) => {
         this.onSubscribe(...args);
@@ -51,52 +85,6 @@ class SocketHandler {
     });
   } ) }
 
-  startSocket (onReady = (socket)=>console.log("onReady"), timeout = 10){
-    // this.socket = io();
-    // window.socket = this.socket
-    new Promise( (res, rej) => {
-      let counter = 0;
-      setInterval(()=>{
-        if(typeof this.socket!="undefined") res();
-        else if(++counter>timeout){
-          console.log("Rejected")
-          rej()
-        }
-      }, 500);
-    }).then(()=>{
-      this.socket.emit("ready", "", (response)=>{
-        console.log("socket ready")
-        // const {sessionkey, ...} = response;
-        // TODO: Variabelen hernoemen
-        window.state.server.sessionkey = response.sessionkey;
-        window.state.server.groupid = response.groupid;
-        window.state.server.userid = response.userindex;
-        window.state.server.maxgroups = response.maxgroups;
-        window.state.server.maxusers = response.maxusers;
-        window.state.server.maxPixelsWidth = response.canvaswidth;
-        window.state.server.maxPixelsHeight = response.canvasheight;
-        window.state.server.clockspeed = response.clockspeed;
-        window.state.server.sessionduration = response.sessionduration;
-        window.state.server.sessionstarted = response.sessionstarted;
-
-        window.state.session.currentXPos = randomInt(window.state.server.maxPixelsWidth); //random x position in canvas
-        window.state.session.currentYPos = randomInt(window.state.server.maxPixelsHeight); // random y positon in canvas
-        window.state.session.herdingstatus = []
-        window.state.session.herdinghistory = new Array(response.maxgroups).fill(0);
-        window.state.session.pixelArray = createArray(window.state.server.maxPixelsWidth, window.state.server.maxPixelsHeight, -1);
-        for(let xIndex in window.state.session.pixelArray){
-          for(let yIndex in window.state.session.pixelArray[xIndex]){
-            window.state.session.pixelArray[xIndex][yIndex] = new PixelObject(xIndex,yIndex)
-          }
-        }
-        window.state.session.lastPixelPos = [window.state.session.currentXPos, window.state.session.currentYPos];
-
-        this.bindListeners();
-        onReady(this.socket);
-        window.state.server.ready = true;
-      });
-    }).catch(()=>{console.log("error")});
-  }
   bindListeners(){
     // Session Revoked. There were too many users trying to login to the system
     this.addListener('sessionrevoked',function(data){
@@ -106,9 +94,9 @@ class SocketHandler {
 
     // Receives clock from server. Calls UI clock function.
     this.addListener('clock', (data)=>{
-      console.log("clock", data)
-      window.state.session.serverarmed = true;
-      window.state.session.clock = data
+      console.log("clock", data);
+      Store.set("session/serverarmed", true);
+      Store.set("session/clock", data);
       window.uiHandler.onClock();
     })
 
@@ -152,8 +140,7 @@ class SocketHandler {
     })
 
     // Show endmodal on session expired
-    socket.on('sessionexpired',(data)=>{
-      console.log("ik ben hier");
+    this.addListener('sessionexpired',(data)=>{
       let endModal = new EndModal();
       window.state.server.ready = false;
       this.calcSheepBehavior(window.state.session.herdinghistory)
