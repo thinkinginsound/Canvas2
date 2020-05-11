@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS user_games (
   is_mobile BOOLEAN default 0,
   self_reflection BOOLEAN,
   herding_percentage INTEGER,
-  last_login DATETIME DEFAULT datetime('now'),
+  last_login DATETIME DEFAULT (datetime('now')),
   is_bot BOOLEAN DEFAULT 0,
   is_active BOOLEAN DEFAULT 1
 );
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS user_data (
   group_order INTEGER,
   is_herding BOOLEAN,
   frame_number INTEGER,
-  timestamp DATETIME DEFAULT datetime('now')
+  timestamp DATETIME DEFAULT (datetime('now'))
 );
 
 CREATE INDEX user_data_user_game_id_frame_number_idx on user_data (user_game_id, frame_number);
@@ -36,7 +36,7 @@ CREATE TABLE user_game_state (
   id INTEGER PRIMARY KEY,
   frame_number INTEGER,
   contents JSON
-)
+);
 
 --------------------------------------------------------------------------------
 -- Down
