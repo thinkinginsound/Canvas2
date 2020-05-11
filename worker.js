@@ -35,45 +35,37 @@ class Worker extends SCWorker {
 
     // Handle incoming websocket connections and listen for events.
     scServer.on('connection', function (socket) {
-      let sessionkey;
-      let sessionstarted;
-      let groupid;
-      let grouporder;
+      // Check if existing session is expired, remove if true
+      if (socket.authToken &&
+          (new Date() - socket.authToken.sessionstarted) >= settings.sessionduration
+      ) socket.authToken = undefined;
 
-      socket.on('auth_request', function (data, respond) {
+
+      socket.on('auth_request', function (data, res) {
         console.log("Auth Request received", data);
-        // Create random session string
-        sessionkey = crypto.randomBytes(20).toString('hex');;
-        sessionstarted = new Date();
-        groupid = 0;
-        grouporder = 0;
 
-        socket.setAuthToken({
-          sessionkey: sessionkey,
-          groupid: groupid,
-          grouporder: grouporder,
-          sessionstarted:sessionstarted,
+        let sessionData = {
+          ...socket.authToken,
           maxgroups:settings.maxgroups,
           maxusers:settings.maxusers,
-          canvaswidth:settings.npcCanvasWidth,
-          canvasheight:settings.npcCanvasHeight,
-          sessionstarted:sessionstarted,
+          canvaswidth:settings.canvaswidth,
+          canvasheight:settings.canvasheight,
           sessionduration:settings.sessionduration,
-          clockspeed:settings.clockspeed
-          // en de rest
-        })
-        respond({ // Static settings
-          sessionkey: sessionkey,
-          groupid:groupid,
-          userindex:grouporder,
-          maxgroups:settings.maxgroups,
-          maxusers:settings.maxusers,
-          canvaswidth:settings.npcCanvasWidth,
-          canvasheight:settings.npcCanvasHeight,
-          sessionstarted:sessionstarted,
-          sessionduration:settings.sessionduration,
-          clockspeed:settings.clockspeed
-        });
+          clockspeed:settings.clockspeed,
+        };
+
+        // Init new session if socket.authToken is true
+        if(!socket.authToken){
+          sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
+          sessionData.sessionstarted = new Date();
+          sessionData.groupid = 0;
+          sessionData.grouporder = 0;
+          sessionData.currentXPos = 0;
+          sessionData.currentYPos = 0;
+        }
+
+        socket.setAuthToken(sessionData)
+        res();
       });
       socket.on('drawpixel', function (data) {
         if (!socket.authToken) return;
@@ -91,6 +83,9 @@ class Worker extends SCWorker {
       });
 
     });
+    // this.on("masterMessage", (error, data)=>{
+    //   console.log("masterMessage", error, data);
+    // })
   }
 }
 
