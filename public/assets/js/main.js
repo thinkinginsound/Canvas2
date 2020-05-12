@@ -11,6 +11,7 @@ import { WelcomeModal } from  "./modals/welcomeModal.js"
 import { AudioClass } from  "./audioclass.js"
 import { SocketHandler } from "./SocketHandler.js"
 import { UIHandler } from "./UIHandler.js"
+import Sketch from "./sketch.js"
 
 import Store from "./Store.js"
 
@@ -19,12 +20,12 @@ Store.add("server/maxgroups", 0);
 Store.add("server/maxusers", 0);
 Store.add("server/clockspeed", 1000);
 Store.add("server/sessionduration", 1000*60*5);
-Store.add("server/maxPixelsWidth", 30);
-Store.add("server/maxPixelsHeight", 30);
+Store.add("server/canvaswidth", 30);
+Store.add("server/canvasheight", 30);
 Store.add("server/sessionkey", -1);
 Store.add("server/sessionstarted", 0);
 
-// Store.add("session/clock", -1);
+Store.add("session/clock", -1);
 Store.add("session/serverarmed", false);
 Store.add("session/group_id", -1);
 Store.add("session/group_order", -1);
@@ -73,6 +74,7 @@ console.log("UserStore", Store);
 window.audioclass = new AudioClass();
 window.uiHandler = new UIHandler();
 window.socketHandler = new SocketHandler();
+window.sketch = Sketch;
 
 $(function() {
   var md = new MobileDetect(window.navigator.userAgent);
@@ -95,8 +97,8 @@ $(function() {
 
 function startApp(){
   window.socketHandler.startClientCom().then((socket, channel)=>{
-    // window.audioclass.setGroupID(Store.get("server/groupid", -1));
-    // uiHandler.fillUI();
-    // uiHandler.bindKeyListener();
+    window.audioclass.setGroupID(Store.get("server/group_id", -1));
+    uiHandler.fillUI();
+    uiHandler.bindKeyListener();
   }, 10);
 }

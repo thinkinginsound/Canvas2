@@ -17,8 +17,8 @@ const sketch = function(p) {
   let padding = 20;
   let offsetX = 0;
   let offsetY = 0;
-  let canvasWidth = pixelSize * Store.get("server/maxPixelsWidth", 40);
-  let canvasHeight = pixelSize * Store.get("server/maxPixelsHeight", 30);
+  let canvasWidth = pixelSize * Store.get("server/canvaswidth", 40);
+  let canvasHeight = pixelSize * Store.get("server/canvasheight", 30);
 
   p.setup = function(){
     // Create canvas with the size of the container and fill with bgcolor
@@ -67,23 +67,25 @@ const sketch = function(p) {
   }
 
   function calcPixelSize(){
-    if(container.offsetWidth/Store.get("server/maxPixelsWidth") < container.offsetHeight/Store.get("server/maxPixelsHeight")){
-      pixelSize = (container.offsetWidth - 2*padding)/Store.get("server/maxPixelsWidth");
+    if(container.offsetWidth/Store.get("server/canvaswidth") < container.offsetHeight/Store.get("server/canvasheight")){
+      pixelSize = (container.offsetWidth - 2*padding)/Store.get("server/canvaswidth");
     } else {
-      pixelSize = (container.offsetHeight - 2*padding)/Store.get("server/maxPixelsHeight");
+      pixelSize = (container.offsetHeight - 2*padding)/Store.get("server/canvasheight");
     }
 
-    if(container.offsetWidth/Store.get("server/maxPixelsWidth") < container.offsetHeight/Store.get("server/maxPixelsHeight")){ // Portrait
-      offsetY = padding + container.offsetHeight/2 - (Store.get("server/maxPixelsHeight")/2)*pixelSize;
+    if(container.offsetWidth/Store.get("server/canvaswidth") < container.offsetHeight/Store.get("server/canvasheight")){ // Portrait
+      offsetY = padding + container.offsetHeight/2 - (Store.get("server/canvasheight")/2)*pixelSize;
       offsetX = padding;
     } else { // Landscape
-      offsetX = padding + container.offsetWidth/2 - (Store.get("server/maxPixelsWidth")/2)*pixelSize;
+      offsetX = padding + container.offsetWidth/2 - (Store.get("server/canvaswidth")/2)*pixelSize;
       offsetY = padding;
     }
-    canvasWidth = pixelSize*Store.get("server/maxPixelsWidth");
-    canvasHeight = pixelSize*Store.get("server/maxPixelsHeight");
+    canvasWidth = pixelSize*Store.get("server/canvaswidth");
+    canvasHeight = pixelSize*Store.get("server/canvasheight");
     return pixelSize;
   }
 };
 
-new p5(sketch, container);
+let Sketch = new p5(sketch, container);
+
+export default Sketch;

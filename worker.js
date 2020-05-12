@@ -45,7 +45,7 @@ class Worker extends SCWorker {
     scServer.on('connection', function (socket) {
       // Check if session exists
       let sessionTimeout;
-      if (socket.authToken){
+      if (socket.authToken && socket.authToken.sessionkey){
         // Check if session is expired, else set timer
         console.log("time", socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime())
         let timeRemaining = socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime();
@@ -69,8 +69,8 @@ class Worker extends SCWorker {
           clockspeed:settings.clockspeed,
         };
 
-        // Init new session if socket.authToken is true
-        if(!socket.authToken){
+        // Init new session if socket.authToken is false
+        if(!socket.authToken || !socket.authToken.sessionkey){
           sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
           sessionData.sessionstarted = new Date().getTime();
           sessionData.groupid = 0;
@@ -95,7 +95,12 @@ class Worker extends SCWorker {
       function initSessionTimeout(timeRemaining) {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
         sessionTimeout = setTimeout(()=>{
+          if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
           socket.emit("sessionexpired");
+          scServer.exchange.publish("userState", {
+            action: "expired",
+            id: sessionData.sessionkey
+          });
           socket.setAuthToken({});
         }, timeRemaining)
       }
