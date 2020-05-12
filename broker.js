@@ -2,6 +2,7 @@ var SCBroker = require('socketcluster/scbroker');
 var scClusterBrokerClient = require('scc-broker-client');
 
 var settings = require('./lib/settings.js');
+const db = require("./lib/db");
 
 class Broker extends SCBroker {
   run() {
@@ -29,7 +30,7 @@ class Broker extends SCBroker {
 
     this.on('masterMessage', (msg, respond) => {
       // this.publish('channelname', msg);
-      // console.log('msg from broker', msg);
+      if (settings.debug) console.log('msg from broker', msg);
       if (msg.type=="onClock") {
         if (settings.debug) console.log('clock', msg.payload);
         this.publish('onClock', msg.payload);
@@ -41,7 +42,10 @@ class Broker extends SCBroker {
       }
     });
     this.on('publish', (channelname, data) => {
-      if(channelname == "userState"){
+      if (settings.debug) console.log('publish from broker', channelname, data);
+      if (channelname == "clientcom") {
+        if (data.id == "drawpixel") db.savePixelData(data.data);
+      } else if (channelname == "userState") {
 
       } else {
         console.log('Uncatched publish from broker:', channelname, data);

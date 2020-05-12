@@ -85,8 +85,7 @@ class SocketHandler {
         res(socket, channel);
       })
       channel.watch((data)=>{
-        console.log("clientcom", data);
-        this.eventHost.dispatchEvent(new CustomEvent(data.id, {payload: data.data}));
+        this.eventHost.dispatchEvent(new CustomEvent(data.id, {detail: data.data}));
       })
     });
   } ) }
@@ -96,7 +95,7 @@ class SocketHandler {
     this.addListener('sessionrevoked',function(data){
       let errorModal = new ErrorModal("Too many users", "Too many users are using the system at this moment. Please wait a few minutes and reload the page.");
       errorModal.show();
-    });
+    }, true);
 
     // Receives clock from server. Calls UI clock function.
     this.addListener('clock', (data)=>{
@@ -152,14 +151,17 @@ class SocketHandler {
       this.calcSheepBehavior(Store.get("session/herdinghistory"))
       endModal.setSheepPercentage(Store.get("session/sheepPercentage"));
       endModal.show();
-    });
+    }, true);
   }
-  addListener(id, action){
-    // this.socket.on(id,action);
-    this.eventHost.addEventListener(id, action)
+  addListener(id, action, privateConnection=false){
+    if(privateConnection) this.socket.on(id,action);
+    else this.eventHost.addEventListener(id, (e)=>{action(e.detail)})
   }
-  emit(id, payload){
-    this.socket.emit(id, payload)
+  emit(id, data){
+    this.socket.emit(id, data)
+  }
+  broadcast(id, data){
+    this.socket.publish("clientcom", {id:id, data:data})
   }
 
   calcSheepBehavior(sheepArray){
