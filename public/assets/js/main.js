@@ -37,39 +37,11 @@ Store.add("session/pixelArray", []);
 Store.add("session/lastPixelPos", [null,null]);
 Store.add("session/currentXPos", 0);
 Store.add("session/currentYPos", 0);
+Store.add("session/hasPlayed", false);
+Store.add("session/username", "")
+Store.add("session/userNamesList", []);
 
 console.log("UserStore", Store);
-
-// // TODO: State object maken
-// window.state = {
-//   server: {
-//     // Static variable retreived from server
-//     ready: false,
-//     maxgroups: 0,
-//     maxusers: 0,
-//     clockspeed: 1000,
-//     sessionduration: 1000*60*5, // 5 minutes in ms;
-//     maxPixelsWidth: 40,
-//     maxPixelsHeight: 30,
-//     sessionkey: -1,
-//     sessionstarted: 0
-//   },
-//   session: {
-//     // Changing variable, some retreived from server
-//     clock: -1,
-//     serverarmed: true,
-//     groupid: -1,
-//     userid: -1,
-//     isHerding: false,
-//     herdingstatus: [],
-//     herdinghistory: [],
-//     sheepPercentage: 0,
-//     pixelArray: [],
-//     lastPixelPos: [null,null],
-//     currentXPos: 0,
-//     currentYPos: 0
-//   },
-// }
 
 window.audioclass = new AudioClass();
 window.uiHandler = new UIHandler();

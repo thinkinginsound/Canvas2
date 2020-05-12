@@ -6,6 +6,7 @@ var morgan = require('morgan');
 var healthChecker = require('sc-framework-health-check');
 var settings = require('./lib/settings.js');
 var crypto = require("crypto");
+const db = require("./lib/db");
 
 class Worker extends SCWorker {
   run() {
@@ -56,7 +57,7 @@ class Worker extends SCWorker {
         }
       }
 
-      socket.on('auth_request', function (data, res) {
+      socket.on('auth_request', async function (data, res) {
         if (settings.debug) console.log("Auth Request received", data);
 
         let sessionData = {
@@ -77,8 +78,10 @@ class Worker extends SCWorker {
           sessionData.grouporder = 0;
           sessionData.currentXPos = 0;
           sessionData.currentYPos = 0;
+          sessionData.username = "mname";
+          sessionData.userNamesList = await db.getNames();
         }
-
+        console.log("sessionData", sessionData)
         socket.setAuthToken(sessionData);
         scServer.exchange.publish("userState", {
           action: "created",

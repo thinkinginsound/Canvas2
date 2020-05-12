@@ -105,7 +105,7 @@ class Synthesizer {
             this.delay.connect(this.reverb);
             this.chorus.connect(this.delay);
             this.synthesizer.connect(this.chorus);
-        } 
+        }
         if(synthType == "rhythm"){
             this.synthesizer = new Tone.NoiseSynth(this.parameters[preset]);
             this.synthesizer.connect(this.filterHerding);
@@ -149,7 +149,7 @@ class Synthesizer {
             this.synthesizer.triggerAttackRelease("G2", "8n");
         }
     }
-  
+
     setFilter(bool){
         if(this.filterOnOff == bool)return;
         if(bool){
