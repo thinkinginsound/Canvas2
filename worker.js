@@ -7,6 +7,7 @@ var healthChecker = require('sc-framework-health-check');
 var settings = require('./lib/settings.js');
 var crypto = require("crypto");
 const db = require("./lib/db");
+const namebuilder = require("./lib/namebuilder/builder.js").namebuilder;
 
 class Worker extends SCWorker {
   run() {
@@ -76,13 +77,13 @@ class Worker extends SCWorker {
           sessionData.sessionstarted = new Date().getTime();
           let firstID = await findFirstID();
           let replacingNPC = await db.getUserSession(firstID.session_key);
-          console.log("replacingNPC", replacingNPC)
           sessionData.groupid = firstID.group_id;
           sessionData.grouporder = firstID.group_order;
           sessionData.currentXPos = replacingNPC.user_loc_x;
           sessionData.currentYPos = replacingNPC.user_loc_y;
-          sessionData.username = replacingNPC.username;
+          sessionData.username = await namebuilder();
           sessionData.userNamesList = await db.getNames();
+          sessionData.replacingNPC = replacingNPC.id;
 
           db.insertUserGame(
             sessionData.sessionkey,
@@ -112,10 +113,13 @@ class Worker extends SCWorker {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
         sessionTimeout = setTimeout(()=>{
           if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
+          db.updateSessionActiveKey( socket.authToken.sessionkey, false );
+          db.updateSessionActive( socket.authToken.replacingNPC, true );
+
           socket.emit("sessionexpired");
           scServer.exchange.publish("userState", {
             action: "expired",
-            id: sessionData.sessionkey
+            id: socket.authToken.sessionkey
           });
           socket.setAuthToken({});
         }, timeRemaining)
