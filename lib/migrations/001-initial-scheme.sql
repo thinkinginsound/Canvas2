@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS user_games (
   herding_percentage INTEGER,
   last_login DATETIME DEFAULT (datetime('now')),
   is_bot BOOLEAN DEFAULT 0,
-  is_active BOOLEAN DEFAULT 1
+  is_active BOOLEAN DEFAULT 1,
+  replaces_npc INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS user_data (

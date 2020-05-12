@@ -74,14 +74,27 @@ class Worker extends SCWorker {
         if(!socket.authToken || !socket.authToken.sessionkey){
           sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
           sessionData.sessionstarted = new Date().getTime();
-          sessionData.groupid = 0;
-          sessionData.grouporder = 0;
-          sessionData.currentXPos = 0;
-          sessionData.currentYPos = 0;
-          sessionData.username = "mname";
+          let firstID = await findFirstID();
+          let replacingNPC = await db.getUserSession(firstID.session_key);
+          console.log("replacingNPC", replacingNPC)
+          sessionData.groupid = firstID.group_id;
+          sessionData.grouporder = firstID.group_order;
+          sessionData.currentXPos = replacingNPC.user_loc_x;
+          sessionData.currentYPos = replacingNPC.user_loc_y;
+          sessionData.username = replacingNPC.username;
           sessionData.userNamesList = await db.getNames();
+
+          db.insertUserGame(
+            sessionData.sessionkey,
+            sessionData.username,
+            sessionData.groupid,
+            sessionData.grouporder,
+            false,
+            true,
+            replacingNPC.id
+          )
+          db.updateSessionActive( replacingNPC.id, false );
         }
-        console.log("sessionData", sessionData)
         socket.setAuthToken(sessionData);
         scServer.exchange.publish("userState", {
           action: "created",
@@ -106,6 +119,24 @@ class Worker extends SCWorker {
           });
           socket.setAuthToken({});
         }, timeRemaining)
+      }
+      async function findFirstID () {
+        let activeNPCs = await db.getActiveNPCs();
+        let npcGroups = []
+        activeNPCs.forEach((item, i) => {
+          if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
+          npcGroups[item.group_id].push(item);
+        });
+        let npcGroupsAmount = npcGroups.map(r=>r.length)
+        let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
+        let npcGroup = npcGroups[group_id].map(r=>r.group_order);
+        let group_order = npcGroup.indexOf(Math.min(...npcGroup));
+        let session_key = ""
+        activeNPCs.forEach((item, i) => {
+          if(item.group_id==group_id && item.group_order == group_order)
+            session_key = item.session_key;
+        });
+        return {"session_key":session_key, "group_id":group_id, "group_order":group_order}
       }
 
     });
