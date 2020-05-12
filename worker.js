@@ -33,16 +33,31 @@ class Worker extends SCWorker {
      * NOTE: Be sure to replace the following sample logic with your own logic.
      */
 
+    // Example how to bind a broker channel
+    // const onClockChannel = this.onClockChannel = this.exchange.subscribe("onClock");
+    // onClockChannel.watch((data)=>{
+    //   console.log("Worker onClock received:", data)
+    // })
+
+    const userStateChannel = this.userStateChannel = this.exchange.subscribe("userState");
+
     // Handle incoming websocket connections and listen for events.
     scServer.on('connection', function (socket) {
-      // Check if existing session is expired, remove if true
-      if (socket.authToken &&
-          (new Date() - socket.authToken.sessionstarted) >= settings.sessionduration
-      ) socket.authToken = undefined;
-
+      // Check if session exists
+      let sessionTimeout;
+      if (socket.authToken){
+        // Check if session is expired, else set timer
+        console.log("time", socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime())
+        let timeRemaining = socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime();
+        if (timeRemaining <= 0) {
+          socket.authToken = undefined;
+        } else {
+          initSessionTimeout(timeRemaining);
+        }
+      }
 
       socket.on('auth_request', function (data, res) {
-        console.log("Auth Request received", data);
+        if (settings.debug) console.log("Auth Request received", data);
 
         let sessionData = {
           ...socket.authToken,
@@ -57,14 +72,19 @@ class Worker extends SCWorker {
         // Init new session if socket.authToken is true
         if(!socket.authToken){
           sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
-          sessionData.sessionstarted = new Date();
+          sessionData.sessionstarted = new Date().getTime();
           sessionData.groupid = 0;
           sessionData.grouporder = 0;
           sessionData.currentXPos = 0;
           sessionData.currentYPos = 0;
         }
 
-        socket.setAuthToken(sessionData)
+        socket.setAuthToken(sessionData);
+        scServer.exchange.publish("userState", {
+          action: "created",
+          id: sessionData.sessionkey
+        });
+        initSessionTimeout(settings.sessionduration);
         res();
       });
       socket.on('drawpixel', function (data) {
@@ -72,20 +92,15 @@ class Worker extends SCWorker {
         // Sla data op in db
       });
 
-      var interval = setInterval(function () {
-        socket.emit('random', {
-          number: Math.floor(Math.random() * 5)
-        });
-      }, 1000);
-
-      socket.on('disconnect', function () {
-        clearInterval(interval);
-      });
+      function initSessionTimeout(timeRemaining) {
+        if (settings.debug) console.log("Session timeout in ", timeRemaining);
+        sessionTimeout = setTimeout(()=>{
+          socket.emit("sessionexpired");
+          socket.setAuthToken({});
+        }, timeRemaining)
+      }
 
     });
-    // this.on("masterMessage", (error, data)=>{
-    //   console.log("masterMessage", error, data);
-    // })
   }
 }
 

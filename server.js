@@ -63,21 +63,13 @@ for (var i in SOCKETCLUSTER_OPTIONS) {
 
 var start = function () {
   var socketCluster = new SocketCluster(options);
-  let workerPID;
 
   const { fork } = require("child_process");
   const program = path.resolve('lib/timerProcess.js');
   const timerProcess = fork(program);
 
   timerProcess.on('message', message => {
-    if (message.type=="onClock") {
-      console.log('clock', message.payload);
-    } else if (message.type=="broadcast") {
-      // console.log('broadcast', message.id, message.payload);
-    } else {
-      console.log('Uncatched message from child:', message);
-    }
-    if (!workerPID) socketCluster.sendToWorker(0, message);
+    socketCluster.sendToBroker(0, message);
   });
   timerProcess.send({type:"initTimer"});
 

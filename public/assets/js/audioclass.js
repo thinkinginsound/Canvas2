@@ -233,7 +233,7 @@ class AudioClass{
       this.rhythmPlayer();
       this.riemann();
     }
-    console.log("arm")
+    // console.log("arm")
     setTimeout(() => {this.clocker();},this.speed);
   }
 

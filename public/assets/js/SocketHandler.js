@@ -22,12 +22,14 @@ class SocketHandler {
     const socket = this.socket = socketCluster.connect({
       ackTimeout: 10000
     });
+    const eventHost = this.eventHost = document.createElement('div');
     socket.on("connect", (...args) => {
       this.onConnect(...args);
     })
     socket.on("close", (...args) => {
       this.onClose(...args);
-    })
+    });
+
   }
 
   onConnect () {
@@ -81,6 +83,10 @@ class SocketHandler {
       socket.on("subscribe", (...args) => {
         this.onSubscribe(...args);
         res(socket, channel);
+      })
+      channel.watch((data)=>{
+        console.log("clientcom", data);
+        this.eventHost.dispatchEvent(new CustomEvent(data.id, {payload: data.data}));
       })
     });
   } ) }
@@ -141,23 +147,26 @@ class SocketHandler {
 
     // Show endmodal on session expired
     this.addListener('sessionexpired',(data)=>{
+      Store.set("server/ready", false);
       let endModal = new EndModal();
-      window.state.server.ready = false;
-      this.calcSheepBehavior(window.state.session.herdinghistory)
-      endModal.setSheepPercentage(window.state.session.sheepPercentage);
+      this.calcSheepBehavior(Store.get("session/herdinghistory"))
+      endModal.setSheepPercentage(Store.get("session/sheepPercentage"));
       endModal.show();
     });
   }
-  addListener(id, action){ this.socket.on(id,action); }
+  addListener(id, action){
+    // this.socket.on(id,action);
+    this.eventHost.addEventListener(id, action)
+  }
   emit(id, payload){
     this.socket.emit(id, payload)
   }
 
   calcSheepBehavior(sheepArray){
     let arrAvg = sheepArray => sheepArray.reduce((a,b) => a + b, 0) / sheepArray.length;
-    window.state.session.sheepPercentage = arrAvg(sheepArray)*100;
+    Store.set("session/sheepPercentage", arrAvg(sheepArray)*100);
     document.getElementById("sheepPercentage");
-    return window.state.session.sheepPercentage;
+    return Store.get("session/sheepPercentage");
   }
 }
 
