@@ -8,6 +8,8 @@
 CREATE TABLE IF NOT EXISTS user_games (
   id INTEGER PRIMARY KEY,
   session_key TEXT UNIQUE,
+  group_id INTEGER,
+  group_order INTEGER,
   is_mobile BOOLEAN default 0,
   self_reflection BOOLEAN,
   herding_percentage INTEGER,
