@@ -44,7 +44,7 @@ class Broker extends SCBroker {
     this.on('publish', (channelname, data) => {
       if (settings.debug) console.log('publish from broker', channelname, data);
       if (channelname == "clientcom") {
-        if (data.id == "drawpixel") db.savePixelData(data.data);
+        if (data.id == "drawpixel") db.insertUserData(data.data);
       } else if (channelname == "userState") {
 
       } else {

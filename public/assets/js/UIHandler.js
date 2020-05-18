@@ -139,14 +139,17 @@ class UIHandler {
   }
   sendPixel(){
     var rad = Math.atan2(Store.get("session/lastPixelPos")[1] - Store.get("session/currentYPos"), Store.get("session/currentXPos") - Store.get("session/lastPixelPos")[0]);
-    var deg = rad * (180 / Math.PI);
+    var deg = (rad * (180 / Math.PI) + 360) % 360;
     let sendable = {
-      mouseX:Store.get("session/currentXPos"),
-      mouseY:Store.get("session/currentYPos"),
-      degrees:deg,
-      clock:Store.get("session/clock"),
+      user_loc_x:Store.get("session/currentXPos"),
+      user_loc_y:Store.get("session/currentYPos"),
+      angle:deg,
+      frame_number:Store.get("session/clock"),
+      user_game_id:Store.get("server/sessionkey"),
+      group_id:Store.get("session/group_id"),
+      group_order:Store.get("session/group_order")
     }
-    if(Store.get("server/ready"))window.socketHandler.emit('drawpixel', sendable);
+    if(Store.get("server/ready"))window.socketHandler.broadcast('drawpixel', sendable);
     else console.error("Socket undefined")
   }
   onClock(){
