@@ -73,13 +73,22 @@ var start = function () {
   var socketCluster = new SocketCluster(options);
 
   const { fork } = require("child_process");
-  const program = path.resolve('lib/timerProcess.js');
-  const timerProcess = fork(program);
+
+  const timerProgram = path.resolve('lib/timerProcess.js');
+  const timerProcess = fork(timerProgram);
+  const aiProgram = path.resolve('lib/aiProcess.js');
+  const aiProcess = fork(aiProgram);
 
   timerProcess.on('message', message => {
     socketCluster.sendToBroker(0, message);
+    if(message.type=="onClock") aiProcess.send(message);
   });
   timerProcess.send({type:"initTimer"});
+
+  aiProcess.on('message', message => {
+    socketCluster.sendToBroker(0, message);
+  });
+  aiProcess.send({type:"initAIProcess"});
 
   socketCluster.on(socketCluster.EVENT_WORKER_CLUSTER_START, function (workerClusterInfo) {
     console.log('   >> WorkerCluster PID:', workerClusterInfo.pid);
