@@ -5,6 +5,9 @@ var path = require('path');
 var morgan = require('morgan');
 var healthChecker = require('sc-framework-health-check');
 var settings = require('./lib/settings.js');
+var crypto = require("crypto");
+const db = require("./lib/db");
+const namebuilder = require("./lib/namebuilder/builder.js").namebuilder;
 
 class Worker extends SCWorker {
   run() {
@@ -16,10 +19,10 @@ class Worker extends SCWorker {
     var httpServer = this.httpServer;
     var scServer = this.scServer;
 
-    if (environment === 'dev') {
+    if (environment === 'dev' && settings.debug) {
       // Log every HTTP request.
       // See https://github.com/expressjs/morgan for other available formats.
-      app.use(morgan('dev'));
+      if(settings.htmlDebug) app.use(morgan('dev'));
     }
     app.use(serveStatic(path.resolve(__dirname, 'public')));
 
@@ -32,55 +35,113 @@ class Worker extends SCWorker {
      * NOTE: Be sure to replace the following sample logic with your own logic.
      */
 
+    // Example how to bind a broker channel
+    // const onClockChannel = this.onClockChannel = this.exchange.subscribe("onClock");
+    // onClockChannel.watch((data)=>{
+    //   console.log("Worker onClock received:", data)
+    // })
+
+    const userStateChannel = this.userStateChannel = this.exchange.subscribe("userState");
+
     // Handle incoming websocket connections and listen for events.
     scServer.on('connection', function (socket) {
-      let sessionkey;
-      let sessionstarted;
-      let groupid;
-      let grouporder;
+      // Check if session exists
+      let sessionTimeout;
+      if (socket.authToken && socket.authToken.sessionkey){
+        // Check if session is expired, else set timer
+        console.log("time", socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime())
+        let timeRemaining = socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime();
+        if (timeRemaining <= 0) {
+          socket.authToken = undefined;
+        } else {
+          initSessionTimeout(timeRemaining);
+        }
+      }
 
-      socket.on('auth_request', function (data, respond) {
-        console.log("Auth Request received");
-        // Create random session string
-        sessionkey = "random_string";
-        sessionstarted = new Date();
-        groupid = 0;
-        grouporder = 0;
+      socket.on('auth_request', async function (data, res) {
+        if (settings.debug) console.log("Auth Request received", data);
 
-        socket.setAuthToken({
-          sessionkey: sessionkey,
-          groupid: groupid,
-          grouporder: grouporder,
-          sessionstarted:sessionstarted
-          // en de rest
-        })
-        respond({ // Static settings
-          sessionkey: sessionkey,
-          groupid:groupid,
-          userindex:grouporder,
+        let sessionData = {
+          ...socket.authToken,
           maxgroups:settings.maxgroups,
           maxusers:settings.maxusers,
-          canvaswidth:settings.npcCanvasWidth,
-          canvasheight:settings.npcCanvasHeight,
-          sessionstarted:sessionstarted,
+          canvaswidth:settings.canvaswidth,
+          canvasheight:settings.canvasheight,
           sessionduration:settings.sessionduration,
-          clockspeed:settings.clockspeed
+          clockspeed:settings.clockspeed,
+        };
+
+        // Init new session if socket.authToken is false
+        if(!socket.authToken || !socket.authToken.sessionkey){
+          sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
+          sessionData.sessionstarted = new Date().getTime();
+          let firstID = await findFirstID();
+          let replacingNPC = await db.getUserSession(firstID.session_key);
+          sessionData.groupid = firstID.group_id;
+          sessionData.grouporder = firstID.group_order;
+          sessionData.currentXPos = replacingNPC.user_loc_x;
+          sessionData.currentYPos = replacingNPC.user_loc_y;
+          sessionData.username = await namebuilder();
+          sessionData.userNamesList = await db.getNames();
+          sessionData.replacingNPC = replacingNPC.id;
+
+          db.insertUserGame(
+            sessionData.sessionkey,
+            sessionData.username,
+            sessionData.groupid,
+            sessionData.grouporder,
+            false,
+            true,
+            replacingNPC.id
+          )
+          db.updateSessionActive( replacingNPC.id, false );
+        }
+        socket.setAuthToken(sessionData);
+        scServer.exchange.publish("userState", {
+          action: "created",
+          id: sessionData.sessionkey
         });
+        initSessionTimeout(settings.sessionduration);
+        res();
       });
       socket.on('drawpixel', function (data) {
         if (!socket.authToken) return;
         // Sla data op in db
       });
 
-      var interval = setInterval(function () {
-        socket.emit('random', {
-          number: Math.floor(Math.random() * 5)
-        });
-      }, 1000);
+      function initSessionTimeout(timeRemaining) {
+        if (settings.debug) console.log("Session timeout in ", timeRemaining);
+        sessionTimeout = setTimeout(()=>{
+          if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
+          db.updateSessionActiveKey( socket.authToken.sessionkey, false );
+          db.updateSessionActive( socket.authToken.replacingNPC, true );
 
-      socket.on('disconnect', function () {
-        clearInterval(interval);
-      });
+          socket.emit("sessionexpired");
+          scServer.exchange.publish("userState", {
+            action: "expired",
+            id: socket.authToken.sessionkey
+          });
+          socket.setAuthToken({});
+        }, timeRemaining)
+      }
+      async function findFirstID () {
+        let activeNPCs = await db.getActiveNPCs();
+        let npcGroups = []
+        activeNPCs.forEach((item, i) => {
+          if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
+          npcGroups[item.group_id].push(item);
+        });
+        let npcGroupsAmount = npcGroups.map(r=>r.length)
+        let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
+        let npcGroup = npcGroups[group_id].map(r=>r.group_order);
+        let group_order = npcGroup.indexOf(Math.min(...npcGroup));
+        let session_key = ""
+        activeNPCs.forEach((item, i) => {
+          if(item.group_id==group_id && item.group_order == group_order)
+            session_key = item.session_key;
+        });
+        return {"session_key":session_key, "group_id":group_id, "group_order":group_order}
+      }
 
     });
   }

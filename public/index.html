@@ -36,6 +36,7 @@
   <script src="/socketcluster.js"></script>
   <script src="/assets/libs/tone/Tone.js"></script>
   <script src="/assets/libs/mobile-detect/mobile-detect.min.js"></script>
+  <script src="/assets/libs/chartjs/Chart.bundle.js"></script>
 
   <!-- Project -->
   <!-- Style sheets -->
@@ -88,11 +89,17 @@
     </br>
       <div id="gametimer">
         <dt>The game ends in</dt>
-        <dd> <span id="time">5:00</span> minutes </dt>
+        <dd> <span id="time"; style="font-size:50px">5:00</span> minutes </dt>
       </div>
       <div id="pixeldistribution">
-
       </div>
+
+      </br>
+      <div>
+        <canvas id="pieChart" style="width: 110%;"></canvas>
+      </div>
+      </br> </br>
+
       <div id="drawtimer">
         <p>Wait until you can draw again:</p>
         <div class="progress">
@@ -106,6 +113,5 @@
   <!-- Scripts -->
   <script src="/assets/js/tools.js"></script>
   <script type="module" src="/assets/js/main.js"></script>
-  <script type="module" src="/assets/js/sketch.js"></script>
 </body>
 </html>

@@ -45,10 +45,10 @@ export class EndModal extends DefaultModal {
         Constantly
         </div>
         <div id="page2">
-        You behaved like a sheep for <span id="sheepPercentage"></span>% of the time
+        You behaved like a sheep for <span id="sheepPercentage"></span>% of the time.
         </br>
-        <p> Please fill in the google forms in the link below </p>
-        <a style="padding: 10px 20px; border-radius: 4px; background-color: #1a75ff; color: white"; href="https://forms.gle/UkTLPJC8tXGNLRkT7">Google forms</a>
+        <p> Please fill in the google forms by clicking the button below to help us further develop out project. </p>
+        <a style="padding: 10px 20px; border-radius: 4px; background-color: #1a75ff; color: white"; href="https://forms.gle/yKDw6S2XUV7PY647A">Google forms</a>
         <button  onclick="document.location = 'forms.asp'></button>
         </br>
         </div>

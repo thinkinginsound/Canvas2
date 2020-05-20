@@ -16,6 +16,8 @@ var waitForFile = fsUtil.waitForFile;
 
 var SocketCluster = require('socketcluster');
 
+const db = require("./lib/db");
+
 var workerControllerPath = argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER;
 var brokerControllerPath = argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER;
 var workerClusterControllerPath = argv.wcc || process.env.SOCKETCLUSTER_WORKERCLUSTER_CONTROLLER;
@@ -62,19 +64,31 @@ for (var i in SOCKETCLUSTER_OPTIONS) {
 }
 
 var start = function () {
+  if(argv.purgedb){
+    db.truncateTable("user_games");
+    db.truncateTable("user_game_state");
+    db.truncateTable("user_data");
+  }
+
   var socketCluster = new SocketCluster(options);
 
-  const fork = require("child_process").fork;
-  const program = path.resolve('lib/ai/aiProcess.js');
-  const parameters = [];
-  const forkOptions = {
-    stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
-  };
-  const aiProcess = fork(program, parameters, forkOptions);
-  aiProcess.on('message', message => {
-    console.log('message from child:', message);
-    aiProcess.send('Hi');
+  const { fork } = require("child_process");
+
+  const timerProgram = path.resolve('lib/timerProcess.js');
+  const timerProcess = fork(timerProgram);
+  const aiProgram = path.resolve('lib/aiProcess.js');
+  const aiProcess = fork(aiProgram);
+
+  timerProcess.on('message', message => {
+    socketCluster.sendToBroker(0, message);
+    if(message.type=="onClock") aiProcess.send(message);
   });
+  timerProcess.send({type:"initTimer"});
+
+  aiProcess.on('message', message => {
+    socketCluster.sendToBroker(0, message);
+  });
+  aiProcess.send({type:"initAIProcess"});
 
   socketCluster.on(socketCluster.EVENT_WORKER_CLUSTER_START, function (workerClusterInfo) {
     console.log('   >> WorkerCluster PID:', workerClusterInfo.pid);

@@ -11,41 +11,42 @@ import { WelcomeModal } from  "./modals/welcomeModal.js"
 import { AudioClass } from  "./audioclass.js"
 import { SocketHandler } from "./SocketHandler.js"
 import { UIHandler } from "./UIHandler.js"
+import Sketch from "./sketch.js"
 
-// TODO: State object maken
-window.state = {
-  server: {
-    // Static variable retreived from server
-    ready: false,
-    maxgroups: 0,
-    maxusers: 0,
-    clockspeed: 1000,
-    sessionduration: 1000*60*5, // 5 minutes in ms;
-    maxPixelsWidth: 40,
-    maxPixelsHeight: 30,
-    sessionkey: -1,
-    sessionstarted: 0
-  },
-  session: {
-    // Changing variable, some retreived from server
-    clock: -1,
-    serverarmed: true,
-    groupid: -1,
-    userid: -1,
-    isHerding: false,
-    herdingstatus: [],
-    herdinghistory: [],
-    sheepPercentage: 0,
-    pixelArray: [],
-    lastPixelPos: [null,null],
-    currentXPos: 0,
-    currentYPos: 0
-  },
-}
+import Store from "./Store.js"
+
+Store.add("server/ready", false);
+Store.add("server/maxgroups", 0);
+Store.add("server/maxusers", 0);
+Store.add("server/clockspeed", 1000);
+Store.add("server/sessionduration", 1000*60*5);
+Store.add("server/canvaswidth", 30);
+Store.add("server/canvasheight", 30);
+Store.add("server/sessionkey", -1);
+Store.add("server/sessionstarted", 0);
+
+Store.add("session/clock", -1);
+Store.add("session/serverarmed", false);
+Store.add("session/group_id", -1);
+Store.add("session/group_order", -1);
+Store.add("session/isHerding", false);
+Store.add("session/herdingstatus", []);
+Store.add("session/herdinghistory", []);
+Store.add("session/sheepPercentage", 0);
+Store.add("session/pixelArray", []);
+Store.add("session/lastPixelPos", [null,null]);
+Store.add("session/currentXPos", 0);
+Store.add("session/currentYPos", 0);
+Store.add("session/hasPlayed", false);
+Store.add("session/username", "")
+Store.add("session/userNamesList", []);
+
+console.log("UserStore", Store);
 
 window.audioclass = new AudioClass();
 window.uiHandler = new UIHandler();
 window.socketHandler = new SocketHandler();
+window.sketch = Sketch;
 
 $(function() {
   var md = new MobileDetect(window.navigator.userAgent);
@@ -55,7 +56,7 @@ $(function() {
     window.location.href = "http://thinkinginsound.nl/";
     return false;
   }
-  
+
   let welcomeModal = new WelcomeModal();
   welcomeModal.setActionPositive((e)=>{
     setCookie("termsagreed", true)
@@ -67,9 +68,9 @@ $(function() {
 });
 
 function startApp(){
-  window.socketHandler.startClientCom((socket, channel)=>{
-    // window.audioclass.setGroupID(window.state.server.groupid);
-    // uiHandler.fillUI();
-    // uiHandler.bindKeyListener();
+  window.socketHandler.startClientCom().then((socket, channel)=>{
+    window.audioclass.setGroupID(Store.get("server/group_id", -1));
+    uiHandler.fillUI();
+    uiHandler.bindKeyListener();
   }, 10);
 }

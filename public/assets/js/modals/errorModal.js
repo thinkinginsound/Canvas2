@@ -2,7 +2,7 @@
 Purpose:
 
 Functions:
- 
+
 */
 
 import { DefaultModal } from "./defaultModal.js"

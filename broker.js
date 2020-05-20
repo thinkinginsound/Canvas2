@@ -1,6 +1,9 @@
 var SCBroker = require('socketcluster/scbroker');
 var scClusterBrokerClient = require('scc-broker-client');
 
+var settings = require('./lib/settings.js');
+const db = require("./lib/db");
+
 class Broker extends SCBroker {
   run() {
     console.log('   >> Broker PID:', process.pid);
@@ -24,6 +27,30 @@ class Broker extends SCBroker {
         stateServerReconnectRandomness: this.options.clusterStateServerReconnectRandomness
       });
     }
+
+    this.on('masterMessage', (msg, respond) => {
+      // this.publish('channelname', msg);
+      // if (settings.debug) console.log('msg from broker', msg);
+      if (msg.type=="onClock") {
+        if (settings.debug) console.log('clock', msg.payload);
+        this.publish('onClock', msg.payload);
+      } else if (msg.type=="broadcast") {
+        // if (settings.debug) console.log('broadcast', msg.id, msg.payload);
+        this.publish('clientcom', {id:msg.id, data:msg.payload});
+      } else {
+        if (settings.debug) console.error('Uncatched masterMessage from broker:', msg);
+      }
+    });
+    this.on('publish', (channelname, data) => {
+      if (settings.debug) console.log('publish from broker', channelname, data);
+      if (channelname == "clientcom") {
+        if (data.id == "drawpixel") db.insertUserData(data.data);
+      } else if (channelname == "userState") {
+
+      } else {
+        console.log('Uncatched publish from broker:', channelname, data);
+      }
+    });
   }
 }
 

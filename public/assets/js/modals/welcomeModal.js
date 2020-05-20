@@ -44,6 +44,10 @@ export class WelcomeModal extends DefaultModal {
     this.player = new Tone.Player({
     	"url" : "/assets/sound/testSound.mp3",
     }).toMaster();
+
+    this.playerTwo = new Tone.Player({
+      "url" : "/assets/sound/ping.wav",
+    }).toMaster();
     //<script>
     this.view.find("#playButton").click((event)=>{
       this.player.start();
@@ -71,7 +75,7 @@ export class WelcomeModal extends DefaultModal {
   }
   actionPositive(e){
     let response = super.actionPositive(e);
-    this.player.start();
+    this.playerTwo.start();
     return response;
   }
 }
