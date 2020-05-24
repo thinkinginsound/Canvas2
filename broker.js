@@ -28,8 +28,11 @@ class Broker extends SCBroker {
       });
     }
 
+    // Ontvangt data vanuit andere processen/threads.
     this.on('masterMessage', (msg, respond) => {
+      // Verstuur een bericht met ID 'channelname' en data 'msg' :
       // this.publish('channelname', msg);
+
       // if (settings.debug) console.log('msg from broker', msg);
       if (msg.type=="onClock") {
         if (settings.debug) console.log('clock', msg.payload);
@@ -37,10 +40,18 @@ class Broker extends SCBroker {
       } else if (msg.type=="broadcast") {
         // if (settings.debug) console.log('broadcast', msg.id, msg.payload);
         this.publish('clientcom', {id:msg.id, data:msg.payload});
+      } else if (msg.type=="herdingUpdate") {
+        // if (settings.debug) console.log('herdingUpdate', msg.id, msg.payload);
+        this.publish('herdingUpdate', {id:msg.id, data:msg.payload});
+      } else if (msg.type=="groupupdate") {
+        // if (settings.debug) console.log('groupupdate', msg.id, msg.payload);
+        this.publish('groupupdate', {id:msg.id, data:msg.payload});
       } else {
         if (settings.debug) console.error('Uncatched masterMessage from broker:', msg);
       }
     });
+
+    // Ontvangt data vanuit de CLIENT
     this.on('publish', (channelname, data) => {
       if (settings.debug) console.log('publish from broker', channelname, data);
       if (channelname == "clientcom") {
