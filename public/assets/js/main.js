@@ -34,6 +34,7 @@ Store.add("session/herdingstatus", []);
 Store.add("session/herdinghistory", []);
 Store.add("session/sheepPercentage", 0);
 Store.add("session/pixelArray", []);
+Store.add("session/currentPixelArray", []);
 Store.add("session/lastPixelPos", [null,null]);
 Store.add("session/currentXPos", 0);
 Store.add("session/currentYPos", 0);
