@@ -128,28 +128,34 @@ class SocketHandler {
     })
 
     // Server updated clients herding status. Store and react.
-    this.addListener('herdingStatus', function(data){
-      if(window.state.server.groupid == -1 || window.state.server.userid == -1)return;
-      window.state.session.isHerding = data[window.state.server.groupid][window.state.server.userid];
-      window.state.session.herdingstatus = new Array(data.length).fill(0);
+    this.addListener('herdingUpdate', function(data){
+      console.log("herdingUpdate", data);
+      const group_id = Store.get("session/group_id", -1);
+      const group_order = Store.get("session/group_order", -1);
+      const isHerding = data[group_id][group_order];
+      if (group_id == -1 || group_order == -1 ) return;
+      Store.set("session/isHerding", isHerding)
+      let herdingstatus = new Array(data.length).fill(0);
       for(let group in data){
         for(let user in data[group]){
-          window.state.session.herdingstatus[group] += data[group][user];
+          herdingstatus[group] += data[group][user];
         }
       }
-      window.state.session.herdinghistory.push(window.state.session.isHerding);
-      window.audioclass.setIsHerding(window.state.session.isHerding,((window.state.session.herdingstatus[window.state.server.groupid]/window.state.server.maxusers) * 100));
-      console.log("herdingStatus", window.state.session.herdingstatus[window.state.server.groupid]);
+      Store.set("session/herdingstatus", herdingstatus)
+      Store.get("session/herdinghistory").push(isHerding);
+      window.audioclass.setIsHerding(isHerding,((herdingstatus[group_id]/Store.get("server/maxusers")) * 100));
+      console.log("herdingStatus", herdingstatus[group_id]);
     })
 
     // Server updated clients group status. Store and react.
     this.addListener('groupupdate', function(data){
-      if(data.indexOf(window.state.server.sessionkey)!=-1){
-        window.state.server.groupid = data.groupid;
-        window.state.server.userid = data.userindex;
+      console.log("groupupdate", data);
+
+      if(data.indexOf(Store.get("server/sessionkey", ""))!=-1){
+        Store.set("session/group_id", data.groupid);
+        Store.set("session/group_order", data.group_order);
         window.uiHandler.updateUserGroup();
       }
-      console.log("groupupdate", data);
     });
 
     //Swap a username
