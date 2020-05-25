@@ -7,8 +7,8 @@ import Store from "./Store.js"
 
 class UIHandler {
   constructor(){
-    this.colorlist = ["#c10000", "#e68a00", "#009600", "#0058ff"]; // List of usable colors
-    this.colorlistPiechart = ["#ff6666", "#ffd699", "#66ff66", "#80acff"]
+    this.colorlist = ["#c10000", "#e67300", "#009900", "#0058ff"]; // List of usable colors
+    this.colorlistPiechart = ["#ff6666", "#ffb366", "#4dff4d", "#80acff"]
     this.bgcolor = "#000";
     this.currentDrawPercentage = 0;
     this.piechart;
