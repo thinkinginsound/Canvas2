@@ -53,7 +53,7 @@ class UIHandler {
   }
 
   fillUI(){
-    fillUsernameList();
+    this.fillUsernameList();
     //pie
     var ctxP = document.getElementById("pieChart").getContext('2d');
     this.piechart = new Chart(ctxP, {
