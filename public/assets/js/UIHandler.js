@@ -15,7 +15,7 @@ class UIHandler {
     this.percentageList = [100, 0, 0, 0, 0, 0];
   }
 
-  fillUI(){
+  fillUsernameList(){
     // Create Player views
     let userlistView = $(".sidebar#sidebar_left #userlist"); //create empty list
     userlistView.empty()
@@ -50,7 +50,10 @@ class UIHandler {
         }
       }
     }
+  }
 
+  fillUI(){
+    fillUsernameList();
     //pie
     var ctxP = document.getElementById("pieChart").getContext('2d');
     this.piechart = new Chart(ctxP, {
@@ -96,10 +99,21 @@ class UIHandler {
     }, (Store.get("server/clockspeed")/10));
   }
   changeUser(index,username){
-    console.log("changeUser", index, username)
     $(`#userlist_${index}`).fadeOut(500, function() {
       $(this).text(username).fadeIn(500);
     });
+  }
+  groupSwitchAnimation(index1, username1, index2, username2){
+    if(index1 !== Store.get("session/group_order") && index2 !== Store.get("session/group_order")){
+      $(`#userlist_${index1}`).fadeOut(500, function() {
+        $(this).text(username2).fadeIn(500);
+      });
+      $(`#userlist_${index2}`).fadeOut(500, function() {
+        $(this).text(username1).fadeIn(500);
+      });
+    } else {
+      fillUsernameList();
+    }
   }
   bindKeyListener(){
     document.addEventListener('keyup', (event) => {
