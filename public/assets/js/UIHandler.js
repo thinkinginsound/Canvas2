@@ -16,6 +16,7 @@ class UIHandler {
   }
 
   fillUsernameList(){
+    console.log("fillUsernameList")
     // Create Player views
     let userlistView = $(".sidebar#sidebar_left #userlist"); //create empty list
     userlistView.empty()
@@ -103,17 +104,21 @@ class UIHandler {
       $(this).text(username).fadeIn(500);
     });
   }
+  /**
+    @description Animation when users switch from one group to the other
+    @param {number} index1 Index of first user in name array
+    @param {string} username1 Value of first user
+    @param {number} index2 Index of second user in name array
+    @param {string} username2 Value of second user
+  */
   groupSwitchAnimation(index1, username1, index2, username2){
-    if(index1 !== Store.get("session/group_order") && index2 !== Store.get("session/group_order")){
-      $(`#userlist_${index1}`).fadeOut(500, function() {
+    console.log("groupSwitchAnimation", index1, username1, index2, username2)
+    $(`#userlist_${index1}`).fadeOut(500, function() {
+      $(this).text(username1).fadeIn(500);
+    });
+    $(`#userlist_${index2}`).fadeOut(500, function() {
         $(this).text(username2).fadeIn(500);
       });
-      $(`#userlist_${index2}`).fadeOut(500, function() {
-        $(this).text(username1).fadeIn(500);
-      });
-    } else {
-      fillUsernameList();
-    }
   }
   bindKeyListener(){
     document.addEventListener('keyup', (event) => {
@@ -171,14 +176,6 @@ class UIHandler {
   onClock(){
     window.uiHandler.currentDrawPercentage = 0;
     this.calcPixelDistribution();
-  }
-  updateUserGroup(){
-    $(".sidebar#sidebar_left #userlist .active").removeClass("active");
-    let userindex = Store.get("session/group_id") * Store.get("server/maxgroups") + Store.get("session/group_order") + 1;
-    $(`.sidebar#sidebar_left #userlist #userlist_${userindex}`).addClass("active");
-    if(typeof window.audioclass != "undefined"){
-      window.audioclass.setGroupID(Store.get("session/group_id"));
-    }
   }
 
   calcPixelDistribution(){

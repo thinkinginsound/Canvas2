@@ -29,7 +29,9 @@ class SocketHandler {
     socket.on("close", (...args) => {
       this.onClose(...args);
     });
-
+    this.groupSwitchPint = new Tone.Player({
+      "url" : "/assets/sound/ping.wav",
+    }).toMaster();
   }
 
   onConnect () {
@@ -60,6 +62,7 @@ class SocketHandler {
     Store.set("session/herdinghistory", new Array(authToken.maxgroups).fill(0));
     Store.set("session/sheepPercentage", 0);
     Store.set("session/pixelArray", createArray(authToken.canvaswidth, authToken.canvasheight, -1));
+    Store.set("session/currentPixelArray", createArray(authToken.maxgroups, authToken.maxusers, [-1,-1]));
     Store.set("session/lastPixelPos", [authToken.currentXPos,authToken.currentYPos]);
     Store.set("session/username", authToken.username)
     Store.set("session/userNamesList", authToken.userNamesList);
@@ -122,41 +125,60 @@ class SocketHandler {
       else if(valueY>Store.get("server/canvasheight"))valueY = Store.get("server/canvasheight");
 
       Store.get("session/pixelArray")[valueX][valueY].setGroup(parseInt(data.group_id));
+      Store.get("session/currentPixelArray")[data.group_id][data.group_order] = [valueX, valueY];
+
     })
 
     // Server updated clients herding status. Store and react.
-    this.addListener('herdingStatus', function(data){
-      if(window.state.server.groupid == -1 || window.state.server.userid == -1)return;
-      window.state.session.isHerding = data[window.state.server.groupid][window.state.server.userid];
-      window.state.session.herdingstatus = new Array(data.length).fill(0);
+    this.addListener('herdingUpdate', function(data){
+      console.log("herdingUpdate", data);
+      const group_id = Store.get("session/group_id", -1);
+      const group_order = Store.get("session/group_order", -1);
+      const isHerding = data[group_id][group_order];
+      if (group_id == -1 || group_order == -1 ) return;
+      Store.set("session/isHerding", isHerding)
+      let herdingstatus = new Array(data.length).fill(0);
       for(let group in data){
         for(let user in data[group]){
-          window.state.session.herdingstatus[group] += data[group][user];
+          herdingstatus[group] += data[group][user];
         }
       }
-      window.state.session.herdinghistory.push(window.state.session.isHerding);
-      window.audioclass.setIsHerding(window.state.session.isHerding,((window.state.session.herdingstatus[window.state.server.groupid]/window.state.server.maxusers) * 100));
-      console.log("herdingStatus", window.state.session.herdingstatus[window.state.server.groupid]);
+      Store.set("session/herdingstatus", herdingstatus)
+      Store.get("session/herdinghistory").push(isHerding);
+      window.audioclass.setIsHerding(isHerding,((herdingstatus[group_id]/Store.get("server/maxusers")) * 100));
+      console.log("herdingStatus", herdingstatus[group_id]);
     })
 
     // Server updated clients group status. Store and react.
-    this.addListener('groupupdate', function(data){
-      if(data.indexOf(window.state.server.sessionkey)!=-1){
-        window.state.server.groupid = data.groupid;
-        window.state.server.userid = data.userindex;
-        window.uiHandler.updateUserGroup();
-        groupSwitchPint = new Tone.Player({
-          "url" : "/assets/sound/ping.wav",
-        }).toMaster();
-        groupSwitchPint.start();
-      }
+    this.addListener('groupupdate', (data)=>{
       console.log("groupupdate", data);
+
+      Object.values(data).forEach((item, i) => {
+        console.log("item", item.name_index, item.name)
+        Store.get("session/userNamesList")[item.name_index] = item.name;
+      });
+
+      this.groupSwitchPint.start();
+
+      if(data[Store.get("server/sessionkey", "")] != undefined){
+        Store.set("session/group_id", data.group_id);
+        Store.set("session/group_order", data.group_order);
+        window.uiHandler.fillUsernameList();
+      } else {
+        let values = Object.values(data);
+        window.uiHandler.groupSwitchAnimation(values[0].name_index, values[0].name, values[1].name_index, values[1].name)
+      }
     });
 
     //Swap a username
     this.addListener('updateUsernames',function(data){
-      Store.get("session/userNamesList")[((data.group*Store.get("server/maxuser"))+parseInt(data.index,10))] = data.name
-      window.uiHandler.changeUser(((data.group*Store.get("server/maxuser"))+parseInt(data.index,10)),data.name);
+      console.log("updateUsernames", data.groupid, Store.get("server/maxusers"), parseInt(data.grouporder,10));
+      let index = data.groupid * Store.get("server/maxusers") + parseInt(data.grouporder,10)
+      Store.get("session/userNamesList")[index] = data.username;
+      window.uiHandler.changeUser(
+        index,
+        data.username
+      );
     });
 
     // Show endmodal on session expired
