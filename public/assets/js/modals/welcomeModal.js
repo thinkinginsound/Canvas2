@@ -25,14 +25,15 @@ export class WelcomeModal extends DefaultModal {
       <div>
         <div id="page1">
           <img src="/assets/images/Behn.svg" style="width:50%;height:50%;" class="padding"</img>
-          <p> Hi stranger, my name is Bêhn. I’m here to introduce you to my latest game. We’ll call you [generated username]. Would you like to change that?</p>
+          <p> Hi stranger, my name is Bêhn. I’m here to introduce you to the Black Sheep Digital.</p>
           </br>
           <button type="button" class="btn btn-primary" id="nextButton">Next</button>
         </div>
 
         <div id="page2">
           <img src="/assets/images/Behn.svg" style="width:30%;height:30%;" class="padding"</img>
-          <p>Hello [username]! Welcome to the Black Sheep Digital. Here are some instructions:
+          </br>
+          Here are some instructions:
           </br>
           When you start, your cursor will appear on the canvas. </br>
           You can now either place a pixel, or move your cursor. You place a pixel by pressing the spacebar.</p>
