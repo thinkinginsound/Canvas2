@@ -40,6 +40,11 @@ Store.add("session/currentYPos", 0);
 Store.add("session/hasPlayed", false);
 Store.add("session/username", "")
 Store.add("session/userNamesList", []);
+Store.add("session/firstPixelPlaced", false);
+Store.add("session/timeRemaining", -1)
+Store.add("session/endPercentage", []);
+Store.add("session/winnerColor", 0);
+Store.add("session/winnerPercentage", 0);
 
 console.log("UserStore", Store);
 

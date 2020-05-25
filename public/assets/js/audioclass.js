@@ -39,6 +39,7 @@ class AudioClass{
     this.chordType="major";
     this.chordBeat=0;
     this.step=0;
+    this.choiceTotal=200;
     //this.callBreak=false; //TODO: use callBreak to initiate breaks
 
     // Rythm
@@ -87,19 +88,24 @@ class AudioClass{
   }
 
   riemann(){
+    let remainingTime = parseInt(Store.get("session/timeRemaining"));
+    if(remainingTime<0){
+      remainingTime=300;
+    }
     this.prevChord = this.chord.slice();
     this.chordBeat+=1;
     if (this.chordBeat==13){
       this.chordBeat=1;
     }
-    if (this.chordBeat==1){
-      let choice = Math.round(randomInt(0,100)); // random keuze voor welke noot verandert
+    if(this.chordBeat==1||this.chordBeat==7){
+      this.choiceTotal = 200 - ((300-remainingTime)*(140/300));
+      let choice = Math.round(randomInt(0,this.choiceTotal)); // random keuze voor welke noot verandert
       // console.log(this.chord);
       // console.log(this.chordType);
       // console.log("Grondtoon= ", Tone.Frequency(this.chord[this.grondtoonIndex], "midi").toNote());
       // console.log("Terts= ", Tone.Frequency(this.chord[this.tertsIndex], "midi").toNote());
       // console.log("Kwint= ", Tone.Frequency(this.chord[this.kwintIndex], "midi").toNote());
-      if (choice < 30){
+      if (choice < 20){
         // Grondtoonverandering
         if(this.chordType == "major"){
           this.chord[this.grondtoonIndex]-=1;
@@ -107,7 +113,7 @@ class AudioClass{
             this.chord[this.grondtoonIndex]-=2;
           }
       }
-      if (choice >= 30 && choice < 60){
+      if(choice >= 20 && choice < 40){
         // Tertsverandering
         if(this.chordType == "major"){
           this.chord[this.tertsIndex]-=1;
@@ -115,7 +121,7 @@ class AudioClass{
             this.chord[this.tertsIndex]+=1;
           }
       }
-      if (choice >= 60 && choice < 90){
+      if(choice >= 40 && choice < 60){
         // Kwintverandering
         if(this.chordType == "major"){
           this.chord[this.kwintIndex]+=2;
@@ -199,15 +205,15 @@ class AudioClass{
   setIsHerding(isHerding,groupHerding){
     this.isHerding = isHerding;
     this.synthesizer.setFilter(isHerding);
-    if(groupHerding <= 25){
-      this.speed = 200;
-    } else if(groupHerding > 25 && groupHerding <= 50){
-      this.speed = 175;
-    } else if(groupHerding > 50 && groupHerding <= 75){
-      this.speed = 150;
-    } else if(groupHerding > 75){
-      this.speed = 125;
-    }
+    // if(groupHerding <= 25){
+    //   this.speed = 200;
+    // } else if(groupHerding > 25 && groupHerding <= 50){
+    //   this.speed = 175;
+    // } else if(groupHerding > 50 && groupHerding <= 75){
+    //   this.speed = 150;
+    // } else if(groupHerding > 75){
+    //   this.speed = 125;
+    // }
   }
 
 //-----------------------Beat generator-------------------------------------------//
