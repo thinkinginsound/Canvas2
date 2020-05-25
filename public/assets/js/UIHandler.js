@@ -96,6 +96,7 @@ class UIHandler {
     }, (Store.get("server/clockspeed")/10));
   }
   changeUser(index,username){
+    console.log("changeUser", index, username)
     $(`#userlist_${index}`).fadeOut(500, function() {
       $(this).text(username).fadeIn(500);
     });

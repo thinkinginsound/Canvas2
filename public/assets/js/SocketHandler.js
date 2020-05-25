@@ -151,8 +151,13 @@ class SocketHandler {
 
     //Swap a username
     this.addListener('updateUsernames',function(data){
-      Store.get("session/userNamesList")[((data.group*Store.get("server/maxuser"))+parseInt(data.index,10))] = data.name
-      window.uiHandler.changeUser(((data.group*Store.get("server/maxuser"))+parseInt(data.index,10)),data.name);
+      console.log("updateUsernames", data.groupid, Store.get("server/maxusers"), parseInt(data.grouporder,10));
+      let index = data.groupid * Store.get("server/maxusers") + parseInt(data.grouporder,10)
+      Store.get("session/userNamesList")[index] = data.username;
+      window.uiHandler.changeUser(
+        index,
+        data.username
+      );
     });
 
     // Show endmodal on session expired

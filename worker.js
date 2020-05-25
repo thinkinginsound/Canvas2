@@ -82,10 +82,9 @@ class Worker extends SCWorker {
           sessionData.currentXPos = replacingNPC.user_loc_x;
           sessionData.currentYPos = replacingNPC.user_loc_y;
           sessionData.username = await namebuilder();
-          sessionData.userNamesList = await db.getNames();
           sessionData.replacingNPC = replacingNPC.id;
 
-          db.insertUserGame(
+          await db.insertUserGame(
             sessionData.sessionkey,
             sessionData.username,
             sessionData.groupid,
@@ -94,12 +93,19 @@ class Worker extends SCWorker {
             true,
             replacingNPC.id
           )
-          db.updateSessionActive( replacingNPC.id, false );
+          await db.updateSessionActive( replacingNPC.id, false );
         }
+
+        sessionData.userNamesList = await db.getNames();
+        console.log("userNamesList", sessionData.userNamesList, sessionData.userNamesList.length)
+
         socket.setAuthToken(sessionData);
         scServer.exchange.publish("userState", {
           action: "created",
-          id: sessionData.sessionkey
+          id: sessionData.sessionkey,
+          username: sessionData.username,
+          groupid: sessionData.groupid,
+          grouporder: sessionData.grouporder
         });
         initSessionTimeout(settings.sessionduration);
         res();

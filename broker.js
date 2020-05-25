@@ -38,13 +38,13 @@ class Broker extends SCBroker {
         if (settings.debug) console.log('clock', msg.payload);
         this.publish('onClock', msg.payload);
       } else if (msg.type=="broadcast") {
-        // if (settings.debug) console.log('broadcast', msg.id, msg.payload);
+        if (settings.debug && msg.id!="drawpixel") console.log('broadcast', msg.id, msg.payload);
         this.publish('clientcom', {id:msg.id, data:msg.payload});
       } else if (msg.type=="herdingUpdate") {
-        // if (settings.debug) console.log('herdingUpdate', msg.id, msg.payload);
+        if (settings.debug) console.log('herdingUpdate', msg.id, msg.payload);
         this.publish('herdingUpdate', {id:msg.id, data:msg.payload});
       } else if (msg.type=="groupupdate") {
-        // if (settings.debug) console.log('groupupdate', msg.id, msg.payload);
+        if (settings.debug) console.log('groupupdate', msg.id, msg.payload);
         this.publish('groupupdate', {id:msg.id, data:msg.payload});
       } else {
         if (settings.debug) console.error('Uncatched masterMessage from broker:', msg);
@@ -57,7 +57,14 @@ class Broker extends SCBroker {
       if (channelname == "clientcom") {
         if (data.id == "drawpixel") db.insertUserData(data.data);
       } else if (channelname == "userState") {
-
+        if (settings.debug) console.log('userState', data);
+        if(data.action == "created"){
+          this.publish('clientcom', {id:'updateUsernames', data:{
+            groupid: data.groupid,
+            grouporder: data.grouporder,
+            username: data.username
+          }});
+        }
       } else {
         console.log('Uncatched publish from broker:', channelname, data);
       }
