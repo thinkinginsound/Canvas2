@@ -60,6 +60,7 @@ class SocketHandler {
     Store.set("session/herdinghistory", new Array(authToken.maxgroups).fill(0));
     Store.set("session/sheepPercentage", 0);
     Store.set("session/pixelArray", createArray(authToken.canvaswidth, authToken.canvasheight, -1));
+    Store.set("session/currentPixelArray", createArray(authToken.maxgroups, authToken.maxusers, [-1,-1]));
     Store.set("session/lastPixelPos", [authToken.currentXPos,authToken.currentYPos]);
     Store.set("session/username", authToken.username)
     Store.set("session/userNamesList", authToken.userNamesList);
@@ -122,6 +123,8 @@ class SocketHandler {
       else if(valueY>Store.get("server/canvasheight"))valueY = Store.get("server/canvasheight");
 
       Store.get("session/pixelArray")[valueX][valueY].setGroup(parseInt(data.group_id));
+      Store.get("session/currentPixelArray")[data.group_id][data.group_order] = [valueX, valueY];
+
     })
 
     // Server updated clients herding status. Store and react.

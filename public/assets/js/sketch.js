@@ -43,6 +43,7 @@ const sketch = function(p) {
     if(firstDraw)lineX = Store.get("session/currentXPos"),lineY = Store.get("session/currentYPos"),firstDraw=false;
     drawPixels();
     previewPixel();
+    highlightUsers();
     if(fade != 0)drawGrid();
   };
   p.windowResized = function() {
@@ -69,7 +70,12 @@ const sketch = function(p) {
     p.noFill();
     p.strokeWeight(strokeWeight);
     p.stroke(0);
-    p.rect(offsetX + Store.get("session/currentXPos")*pixelSize - strokeWeight/2, offsetY + Store.get("session/currentYPos")*pixelSize - strokeWeight/2, pixelSize+strokeWeight/2, pixelSize+strokeWeight/2);
+    p.rect(
+      offsetX + Store.get("session/currentXPos")*pixelSize - strokeWeight/2,
+      offsetY + Store.get("session/currentYPos")*pixelSize - strokeWeight/2,
+      pixelSize+strokeWeight/2,
+      pixelSize+strokeWeight/2
+    );
   }
 
   function calcPixelSize(){
@@ -90,7 +96,28 @@ const sketch = function(p) {
     canvasHeight = pixelSize * Store.get("server/canvasheight");
     return pixelSize;
   }
+  function highlightUsers() {
+    const currentPixelArray = Store.get("session/currentPixelArray");
+    currentPixelArray.forEach((group, i) => {
+      group.forEach((user, j) => {
+        // Ignore if index out of bounds
+        if(user[0] == -1 || user[1] == -1) return
+        // Ignore if is current user
+        if(i == Store.get("session/group_id") && j == Store.get("session/group_order")) return
+        
+        let pixelcolor = window.uiHandler.colorlistPiechart[i];
+        p.fill(pixelcolor);
+        p.noStroke();
+        p.rect(
+          offsetX + user[0] * pixelSize,
+          offsetY + user[1] * pixelSize,
+          pixelSize,
+          pixelSize
+        );
+      });
+    });
 
+  }
   function drawGrid() {
     let x = offsetX + lineX*pixelSize;
     let y = offsetY + lineY*pixelSize;
