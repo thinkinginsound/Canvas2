@@ -1,0 +1,12 @@
+{
+    // Comments are supported
+    "uid": "this_canvas",
+    "append": true,
+    "watch": true,
+    "script": "server.js",
+    "sourceDir": "/Users/jochem/stack/hku/THIS/this-canvas",
+    "logFile": "/Users/jochem/stack/hku/THIS/this-canvas/forever/logs/forever.log",
+    "outFile": "/Users/jochem/stack/hku/THIS/this-canvas/forever/logs/out.log",
+    "errFile": "/Users/jochem/stack/hku/THIS/this-canvas/forever/logs/error.log",
+    "args": ["--purgedb", "--port", "8000"]
+}
