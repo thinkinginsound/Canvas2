@@ -8,5 +8,6 @@
     "logFile": "/home/thinkinginsound/Canvas2/forever/logs/forever.log",
     "outFile": "/home/thinkinginsound/Canvas2/forever/logs/out.log",
     "errFile": "/home/thinkinginsound/Canvas2/forever/logs/error.log",
-    "args": ["--purgedb", "--port", "8000"]
+    "args": ["--purgedb", "--port", "8000"],
+    "killSignal": "SIGTERM"
 }
