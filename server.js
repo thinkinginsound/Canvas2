@@ -101,7 +101,7 @@ var start = function () {
     console.log(`   !! The sc-hot-reboot plugin is watching for code changes in the ${__dirname} directory`);
     scHotReboot.attach(socketCluster, {
       cwd: __dirname,
-      ignored: ['public', 'node_modules', 'README.md', 'Dockerfile', 'server.js', 'broker.js', /[\/\\]\./, '*.log', 'database.sqlite', 'database.sqlite-journal']
+      ignored: ['public', 'node_modules', 'README.md', 'Dockerfile', 'server.js', 'broker.js', /[\/\\]\./, '*.log', 'database.sqlite', 'database.sqlite-journal', 'forever']
     });
   }
 };
