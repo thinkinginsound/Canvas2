@@ -80,7 +80,6 @@ class Worker extends SCWorker {
             socket.emit("sessionrevoked");
             return;
           }
-          console.log("firstID", firstID);
           let replacingNPC = await db.getUserSession(firstID.session_key);
           sessionData.groupid = firstID.group_id;
           sessionData.grouporder = firstID.group_order;
@@ -114,11 +113,9 @@ class Worker extends SCWorker {
           sessionData.grouporder = dbUserData.group_order;
           sessionData.currentXPos = dbUserData.user_loc_x;
           sessionData.currentYPos = dbUserData.user_loc_y;
-          console.log("dbUserData", dbUserData, sessionData.sessionkey);
         }
 
         sessionData.userNamesList = await db.getNames();
-        console.log("userNamesList", sessionData.userNamesList, sessionData.userNamesList.length)
 
         socket.setAuthToken(sessionData);
         scServer.exchange.publish("userState", {
@@ -156,21 +153,14 @@ class Worker extends SCWorker {
       }
       async function findFirstID () {
         let activeNPCs = await db.getActiveNPCs();
-        console.log("activeNPCs", activeNPCs)
         let npcGroups = new Array(settings.maxgroups).fill(0).map(r=>new Array())
         activeNPCs.forEach((item, i) => {
-          // if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
           npcGroups[item.group_id].push(item);
         });
-        console.log("npcGroups", npcGroups)
         let npcGroupsAmount = npcGroups.map(r=>r.length)
-        console.log("npcGroupsAmount", npcGroupsAmount);
         let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
-        console.log("group_id", group_id);
         let npcGroup = npcGroups[group_id].map(r=>r.group_order);
-        console.log("npcGroup", npcGroup);
         let group_order = Math.min(...npcGroup);
-        console.log("group_order", group_order, Math.min(...npcGroup));
         if (group_id >= settings.maxgroups || group_order >= settings.maxusers) return false;
         let session_key = ""
         activeNPCs.forEach((item, i) => {

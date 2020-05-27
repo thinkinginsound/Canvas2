@@ -33,19 +33,15 @@ class Broker extends SCBroker {
       // Verstuur een bericht met ID 'channelname' en data 'msg' :
       // this.publish('channelname', msg);
 
-      // if (settings.debug) console.log('msg from broker', msg);
       if (msg.type=="onClock") {
-        if (settings.debug) console.log('clock', msg.payload);
+        console.log('clock', msg.payload);
         this.publish('onClock', msg.payload);
       } else if (msg.type=="broadcast") {
-        if (settings.debug && msg.id!="drawpixel") console.log('broadcast', msg.id, msg.payload);
         this.publish('clientcom', {id:msg.id, data:msg.payload});
       } else if (msg.type=="herdingUpdate") {
-        if (settings.debug) console.log('herdingUpdate', msg.id, msg.payload);
         this.publish('herdingUpdate', {id:msg.id, data:msg.payload});
         this.publish('clientcom', {id:"herdingUpdate", data:msg.payload});
       } else if (msg.type=="groupupdate") {
-        if (settings.debug) console.log('groupupdate', msg.id, msg.payload);
         this.publish('groupupdate', {id:msg.id, data:msg.payload});
         this.publish('clientcom', {id:"groupupdate", data:msg.payload});
       } else if (msg.type=="userNamesList") {
@@ -57,11 +53,9 @@ class Broker extends SCBroker {
 
     // Ontvangt data vanuit de CLIENT
     this.on('publish', (channelname, data) => {
-      // if (settings.debug) console.log('publish from broker', channelname, data);
       if (channelname == "clientcom") {
         if (data.id == "drawpixel") db.insertUserData(data.data);
       } else if (channelname == "userState") {
-        if (settings.debug) console.log('userState', data);
         if (data.action == "created") {
           this.publish('clientcom', {id:'updateUsernames', data:{
             groupid: data.groupid,
