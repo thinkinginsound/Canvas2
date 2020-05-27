@@ -80,6 +80,7 @@ class Worker extends SCWorker {
             socket.emit("sessionrevoked");
             return;
           }
+          console.log("firstID", firstID);
           let replacingNPC = await db.getUserSession(firstID.session_key);
           sessionData.groupid = firstID.group_id;
           sessionData.grouporder = firstID.group_order;
@@ -155,15 +156,21 @@ class Worker extends SCWorker {
       }
       async function findFirstID () {
         let activeNPCs = await db.getActiveNPCs();
+        console.log("activeNPCs", activeNPCs)
         let npcGroups = []
         activeNPCs.forEach((item, i) => {
           if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
           npcGroups[item.group_id].push(item);
         });
+        console.log("npcGroups", npcGroups)
         let npcGroupsAmount = npcGroups.map(r=>r.length)
+        console.log("npcGroupsAmount", npcGroupsAmount);
         let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
+        console.log("group_id", group_id);
         let npcGroup = npcGroups[group_id].map(r=>r.group_order);
+        console.log("npcGroup", npcGroup);
         let group_order = npcGroup.indexOf(Math.min(...npcGroup));
+        console.log("group_order", group_order);
         if (group_id >= settings.maxgroups || group_order >= settings.maxusers) return false;
         let session_key = ""
         activeNPCs.forEach((item, i) => {
