@@ -158,7 +158,6 @@ class SocketHandler {
         Store.get("session/userNamesList")[item.name_index] = item.name;
       });
 
-      console.log(data, Store.get("server/sessionkey", ""), Store.get("session/group_id"), Store.get("session/group_order"))
       if(data[Store.get("server/sessionkey", "")] != undefined){
         console.log("switch self");
         Store.set("session/group_id", data[Store.get("server/sessionkey", "")].group_id);
