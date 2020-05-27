@@ -110,8 +110,8 @@ const sketch = function(p) {
         p.fill(pixelcolor);
         p.noStroke();
         p.rect(
-          offsetX + user[0] * pixelSize,
-          offsetY + user[1] * pixelSize,
+          offsetX + user[0] * pixelSize-1,
+          offsetY + user[1] * pixelSize-1,
           pixelSize,
           pixelSize
         );
