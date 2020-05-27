@@ -30,7 +30,6 @@ const sketch = function(p) {
     p.background(window.uiHandler.bgcolor);
     p.frameRate(10);
     calcPixelSize();
-    // console.log(sheepPercentage);
   }
 
   p.draw = function() {
@@ -104,7 +103,7 @@ const sketch = function(p) {
         if(user[0] == -1 || user[1] == -1) return
         // Ignore if is current user
         if(i == Store.get("session/group_id") && j == Store.get("session/group_order")) return
-        
+
         let pixelcolor = window.uiHandler.colorlistPiechart[i];
         p.fill(pixelcolor);
         p.noStroke();

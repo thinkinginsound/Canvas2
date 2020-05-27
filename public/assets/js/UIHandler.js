@@ -16,7 +16,6 @@ class UIHandler {
   }
 
   fillUsernameList(){
-    console.log("fillUsernameList")
     // Create Player views
     let userlistView = $(".sidebar#sidebar_left #userlist"); //create empty list
     userlistView.empty()
@@ -112,7 +111,6 @@ class UIHandler {
     @param {string} username2 Value of second user
   */
   groupSwitchAnimation(index1, username1, index2, username2){
-    console.log("groupSwitchAnimation", index1, username1, index2, username2)
     $(`#userlist_${index1}`).fadeOut(500, function() {
       $(this).text(username1).fadeIn(500);
     });
