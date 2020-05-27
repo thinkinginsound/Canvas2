@@ -135,6 +135,9 @@ class Worker extends SCWorker {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
         sessionTimeout = setTimeout(async ()=>{
           if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
+          let dbUserData = await db.getUserSession(socket.authToken.sessionkey);
+          let dbUserDataNPC = await db.getUserSessionID(socket.authToken.replacingNPC);
+          await db.updateUserGameIndexes(dbUserDataNPC.session_key, dbUserData.group_id, dbUserData.group_order);
           await db.updateSessionActiveKey( socket.authToken.sessionkey, false );
           await db.updateSessionActive( socket.authToken.replacingNPC, true );
 
