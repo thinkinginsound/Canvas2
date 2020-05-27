@@ -157,9 +157,9 @@ class Worker extends SCWorker {
       async function findFirstID () {
         let activeNPCs = await db.getActiveNPCs();
         console.log("activeNPCs", activeNPCs)
-        let npcGroups = new Array(settings.maxgroups).fill([])
+        let npcGroups = new Array(settings.maxgroups).fill(0).map(r=>new Array())
         activeNPCs.forEach((item, i) => {
-          if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
+          // if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
           npcGroups[item.group_id].push(item);
         });
         console.log("npcGroups", npcGroups)
