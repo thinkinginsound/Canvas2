@@ -76,6 +76,10 @@ class Worker extends SCWorker {
           sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
           sessionData.sessionstarted = new Date().getTime();
           let firstID = await findFirstID();
+          if (!firstID) {
+            socket.emit("sessionrevoked");
+            return;
+          }
           let replacingNPC = await db.getUserSession(firstID.session_key);
           sessionData.groupid = firstID.group_id;
           sessionData.grouporder = firstID.group_order;
@@ -160,6 +164,7 @@ class Worker extends SCWorker {
         let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
         let npcGroup = npcGroups[group_id].map(r=>r.group_order);
         let group_order = npcGroup.indexOf(Math.min(...npcGroup));
+        if (group_id >= settings.maxgroups || group_order >= settings.maxusers) return false;
         let session_key = ""
         activeNPCs.forEach((item, i) => {
           if(item.group_id==group_id && item.group_order == group_order)

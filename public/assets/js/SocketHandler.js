@@ -29,6 +29,15 @@ class SocketHandler {
     socket.on("close", (...args) => {
       this.onClose(...args);
     });
+
+    // Session Revoked. There were too many users trying to login to the system
+    socket.on('sessionrevoked',function(data){
+      console.log("sessionrevoked")
+      let errorModal = new ErrorModal("Too many users", "Too many users are using the system at this moment. Please wait a few minutes and reload the page.");
+      errorModal.show();
+      Store.set("session/serverarmed", false);
+    }, true);
+
     this.groupSwitchPint = new Tone.Player({
       "url" : "/assets/sound/ping.wav",
     }).toMaster();
@@ -98,12 +107,6 @@ class SocketHandler {
   } ) }
 
   bindListeners(){
-    // Session Revoked. There were too many users trying to login to the system
-    this.addListener('sessionrevoked',function(data){
-      let errorModal = new ErrorModal("Too many users", "Too many users are using the system at this moment. Please wait a few minutes and reload the page.");
-      errorModal.show();
-    }, true);
-
     // Receives clock from server. Calls UI clock function.
     this.addListener('clock', (data)=>{
       console.log('clock', data)
