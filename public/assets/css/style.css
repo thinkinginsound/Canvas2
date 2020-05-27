@@ -80,3 +80,13 @@ main#pageterms {
 .padding {
   padding: 20px 0px 20px 0px;
 }
+
+@font-face {
+  font-family: "alarm clock";
+  src: url(../fonts/alarmclock.ttf) format("truetype"); 
+}
+
+#time {
+  font-family: 'alarm clock';
+  font-size:100px;
+}
