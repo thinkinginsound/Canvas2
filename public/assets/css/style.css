@@ -44,11 +44,13 @@ main#pagemain .sidebar{
   max-width: 300px;
   background-color: #000000;
   padding: 40px;
+  padding-top: 0px;
 }
 main#pagemain .sketchcontainer{
   display: flex;
   flex-grow: 1;
   overflow: hidden;
+  padding-top: 0px;
 }
 
 main#pagemain .sidebar#sidebar_left{
