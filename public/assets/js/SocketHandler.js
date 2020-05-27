@@ -137,7 +137,7 @@ class SocketHandler {
       console.log("herdingUpdate", data);
       const group_id = Store.get("session/group_id", -1);
       const group_order = Store.get("session/group_order", -1);
-      let isHerdin = false;
+      let isHerding = false;
       if(!data || !data[group_id] || !data[group_id][group_order]){
         isHerding = false;
       } else {
