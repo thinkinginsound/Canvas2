@@ -165,12 +165,12 @@ class Worker extends SCWorker {
         console.log("npcGroups", npcGroups)
         let npcGroupsAmount = npcGroups.map(r=>r.length)
         console.log("npcGroupsAmount", npcGroupsAmount);
-        let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
+        let group_id = Math.max(...npcGroupsAmount);
         console.log("group_id", group_id);
         let npcGroup = npcGroups[group_id].map(r=>r.group_order);
         console.log("npcGroup", npcGroup);
-        let group_order = npcGroup.indexOf(Math.min(...npcGroup));
-        console.log("group_order", group_order);
+        let group_order = Math.min(...npcGroup);
+        console.log("group_order", group_order, Math.min(...npcGroup));
         if (group_id >= settings.maxgroups || group_order >= settings.maxusers) return false;
         let session_key = ""
         activeNPCs.forEach((item, i) => {
