@@ -205,15 +205,15 @@ class AudioClass{
   setIsHerding(isHerding,groupHerding){
     this.isHerding = isHerding;
     this.synthesizer.setFilter(isHerding);
-    // if(groupHerding <= 25){
-    //   this.speed = 200;
-    // } else if(groupHerding > 25 && groupHerding <= 50){
-    //   this.speed = 175;
-    // } else if(groupHerding > 50 && groupHerding <= 75){
-    //   this.speed = 150;
-    // } else if(groupHerding > 75){
-    //   this.speed = 125;
-    // }
+    if(groupHerding <= 25){
+      this.speed = 200;
+    } else if(groupHerding > 25 && groupHerding <= 50){
+      this.speed = 190;
+    } else if(groupHerding > 50 && groupHerding <= 75){
+      this.speed = 180;
+    } else if(groupHerding > 75){
+      this.speed = 170;
+    }
   }
 
 //-----------------------Beat generator-------------------------------------------//

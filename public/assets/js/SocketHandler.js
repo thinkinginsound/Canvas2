@@ -158,7 +158,7 @@ class SocketHandler {
         Store.get("session/userNamesList")[item.name_index] = item.name;
       });
 
-      this.groupSwitchPint.start();
+      //this.groupSwitchPint.start();
 
       if(data[Store.get("server/sessionkey", "")] != undefined){
         Store.set("session/group_id", data.group_id);
