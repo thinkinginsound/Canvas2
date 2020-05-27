@@ -9,6 +9,10 @@ import { EndModal } from  "./modals/endModal.js"
 import { PixelObject } from "./pixelObject.js"
 import Store from "./Store.js"
 
+function draw(){
+  window.sketch.redraw();
+}
+
 function createClosure(){
   let i = 1;
   return function inc(num){
@@ -110,6 +114,7 @@ class SocketHandler {
       Store.set("session/serverarmed", true);
       Store.set("session/clock", data);
       window.uiHandler.onClock();
+      draw();
     })
 
     // Received a new pixel. Write to storage
@@ -126,7 +131,7 @@ class SocketHandler {
 
       Store.get("session/pixelArray")[valueX][valueY].setGroup(parseInt(data.group_id));
       Store.get("session/currentPixelArray")[data.group_id][data.group_order] = [valueX, valueY];
-
+      draw();
     })
 
     // Server updated clients herding status. Store and react.
@@ -147,6 +152,7 @@ class SocketHandler {
       Store.get("session/herdinghistory").push(isHerding);
       window.audioclass.setIsHerding(isHerding,((herdingstatus[group_id]/Store.get("server/maxusers")) * 100));
       console.log("herdingStatus", herdingstatus[group_id]);
+      draw();
     })
 
     // Server updated clients group status. Store and react.
@@ -168,6 +174,7 @@ class SocketHandler {
         let values = Object.values(data);
         window.uiHandler.groupSwitchAnimation(values[0].name_index, values[0].name, values[1].name_index, values[1].name)
       }
+      draw();
     });
 
     //Swap a username
@@ -179,6 +186,7 @@ class SocketHandler {
         index,
         data.username
       );
+      draw();
     });
 
     // Show endmodal on session expired
