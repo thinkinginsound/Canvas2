@@ -122,6 +122,6 @@ export class EndModal extends DefaultModal {
 
   setSheepPercentage(value){
     this.sheepPercentage = value;
-    this.view.find("#sheepPercentage").text(value);
+    this.view.find("#sheepPercentage").text(value.toFixed(2));
   }
 }
