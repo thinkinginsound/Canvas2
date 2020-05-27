@@ -158,7 +158,6 @@ class SocketHandler {
         Store.get("session/userNamesList")[item.name_index] = item.name;
       });
 
-      // this.groupSwitchPint.start();
       console.log(data, Store.get("server/sessionkey", ""), Store.get("session/group_id"), Store.get("session/group_order"))
       if(data[Store.get("server/sessionkey", "")] != undefined){
         console.log("switch self");
@@ -166,6 +165,7 @@ class SocketHandler {
         Store.set("session/group_order", data[Store.get("server/sessionkey", "")].group_order);
         console.log("username", Store.get("session/username"), Store.get("session/group_id"), Store.get("session/group_order"));
         window.uiHandler.fillUsernameList();
+        this.groupSwitchPint.start();
       } else {
         console.log("switch others");
         let values = Object.values(data);
