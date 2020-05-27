@@ -33,6 +33,15 @@ class SocketHandler {
     socket.on("close", (...args) => {
       this.onClose(...args);
     });
+
+    // Session Revoked. There were too many users trying to login to the system
+    socket.on('sessionrevoked',function(data){
+      console.log("sessionrevoked")
+      let errorModal = new ErrorModal("Too many users", "Too many users are using the system at this moment. Please wait a few minutes and reload the page.");
+      errorModal.show();
+      Store.set("session/serverarmed", false);
+    }, true);
+
     this.groupSwitchPint = new Tone.Player({
       "url" : "/assets/sound/ping.wav",
     }).toMaster();
@@ -48,7 +57,6 @@ class SocketHandler {
     console.log("socket subscribed", response);
 
     const authToken = this.socket.authToken;
-    console.log("auth token", authToken);
     Store.set("server/sessionkey", authToken.sessionkey);
     Store.set("server/maxgroups", authToken.maxgroups);
     Store.set("server/maxusers", authToken.maxusers);
@@ -70,7 +78,6 @@ class SocketHandler {
     Store.set("session/lastPixelPos", [authToken.currentXPos,authToken.currentYPos]);
     Store.set("session/username", authToken.username)
     Store.set("session/userNamesList", authToken.userNamesList);
-    console.log("userNamesList", authToken.userNamesList)
     for(let xIndex in Store.get("session/pixelArray")){
       for(let yIndex in Store.get("session/pixelArray")[xIndex]){
         Store.get("session/pixelArray")[xIndex][yIndex] = new PixelObject(parseInt(xIndex),parseInt(yIndex))
@@ -78,7 +85,6 @@ class SocketHandler {
     }
     window.sketch.windowResized()
 
-    console.log("UserStore", Store);
     this.bindListeners();
     Store.set("server/ready", true);
     Store.set("session/hasPlayed", true);
@@ -102,12 +108,6 @@ class SocketHandler {
   } ) }
 
   bindListeners(){
-    // Session Revoked. There were too many users trying to login to the system
-    this.addListener('sessionrevoked',function(data){
-      let errorModal = new ErrorModal("Too many users", "Too many users are using the system at this moment. Please wait a few minutes and reload the page.");
-      errorModal.show();
-    }, true);
-
     // Receives clock from server. Calls UI clock function.
     this.addListener('clock', (data)=>{
       console.log('clock', data)
@@ -119,7 +119,6 @@ class SocketHandler {
 
     // Received a new pixel. Write to storage
     this.addListener('drawpixel', function(data){
-      // console.log('drawpixel', data)
       let valueX = Math.floor(data.user_loc_x);
       let valueY = Math.floor(data.user_loc_y);
 
@@ -136,10 +135,14 @@ class SocketHandler {
 
     // Server updated clients herding status. Store and react.
     this.addListener('herdingUpdate', function(data){
-      console.log("herdingUpdate", data);
       const group_id = Store.get("session/group_id", -1);
       const group_order = Store.get("session/group_order", -1);
-      const isHerding = data[group_id][group_order];
+      let isHerding = false;
+      if(!data || !data[group_id] || !data[group_id][group_order]){
+        isHerding = false;
+      } else {
+        isHerding = data[group_id][group_order];
+      }
       if (group_id == -1 || group_order == -1 ) return;
       Store.set("session/isHerding", isHerding)
       let herdingstatus = new Array(data.length).fill(0);
@@ -151,25 +154,20 @@ class SocketHandler {
       Store.set("session/herdingstatus", herdingstatus)
       Store.get("session/herdinghistory").push(isHerding);
       window.audioclass.setIsHerding(isHerding,((herdingstatus[group_id]/Store.get("server/maxusers")) * 100));
-      console.log("herdingStatus", herdingstatus[group_id]);
       draw();
     })
 
     // Server updated clients group status. Store and react.
     this.addListener('groupupdate', (data)=>{
-      console.log("groupupdate", data);
-
       Object.values(data).forEach((item, i) => {
-        console.log("item", item.name_index, item.name)
         Store.get("session/userNamesList")[item.name_index] = item.name;
       });
 
-      this.groupSwitchPint.start();
-
       if(data[Store.get("server/sessionkey", "")] != undefined){
-        Store.set("session/group_id", data.group_id);
-        Store.set("session/group_order", data.group_order);
+        Store.set("session/group_id", data[Store.get("server/sessionkey", "")].group_id);
+        Store.set("session/group_order", data[Store.get("server/sessionkey", "")].group_order);
         window.uiHandler.fillUsernameList();
+        this.groupSwitchPint.start();
       } else {
         let values = Object.values(data);
         window.uiHandler.groupSwitchAnimation(values[0].name_index, values[0].name, values[1].name_index, values[1].name)
@@ -177,9 +175,14 @@ class SocketHandler {
       draw();
     });
 
+    this.addListener('userNamesList', (data)=>{
+      Store.set("session/userNamesList", data);
+      window.uiHandler.fillUsernameList();
+    })
+
+
     //Swap a username
     this.addListener('updateUsernames',function(data){
-      console.log("updateUsernames", data.groupid, Store.get("server/maxusers"), parseInt(data.grouporder,10));
       let index = data.groupid * Store.get("server/maxusers") + parseInt(data.grouporder,10)
       Store.get("session/userNamesList")[index] = data.username;
       window.uiHandler.changeUser(

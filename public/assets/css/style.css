@@ -44,11 +44,13 @@ main#pagemain .sidebar{
   max-width: 300px;
   background-color: #000000;
   padding: 40px;
+  padding-top: 0px;
 }
 main#pagemain .sketchcontainer{
   display: flex;
   flex-grow: 1;
   overflow: hidden;
+  padding-top: 0px;
 }
 
 main#pagemain .sidebar#sidebar_left{
@@ -77,4 +79,14 @@ main#pageterms {
 
 .padding {
   padding: 20px 0px 20px 0px;
+}
+
+@font-face {
+  font-family: "alarm clock";
+  src: url(../fonts/alarmclock.ttf) format("truetype"); 
+}
+
+#time {
+  font-family: 'alarm clock';
+  font-size:100px;
 }
