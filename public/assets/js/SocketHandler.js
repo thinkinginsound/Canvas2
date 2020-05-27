@@ -158,17 +158,25 @@ class SocketHandler {
         Store.get("session/userNamesList")[item.name_index] = item.name;
       });
 
-      //this.groupSwitchPint.start();
-
       if(data[Store.get("server/sessionkey", "")] != undefined){
-        Store.set("session/group_id", data.group_id);
-        Store.set("session/group_order", data.group_order);
+        console.log("switch self");
+        Store.set("session/group_id", data[Store.get("server/sessionkey", "")].group_id);
+        Store.set("session/group_order", data[Store.get("server/sessionkey", "")].group_order);
+        console.log("username", Store.get("session/username"), Store.get("session/group_id"), Store.get("session/group_order"));
         window.uiHandler.fillUsernameList();
+        this.groupSwitchPint.start();
       } else {
+        console.log("switch others");
         let values = Object.values(data);
         window.uiHandler.groupSwitchAnimation(values[0].name_index, values[0].name, values[1].name_index, values[1].name)
       }
     });
+
+    this.addListener('userNamesList', (data)=>{
+      Store.set("session/userNamesList", data);
+      window.uiHandler.fillUsernameList();
+    })
+
 
     //Swap a username
     this.addListener('updateUsernames',function(data){

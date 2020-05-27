@@ -48,6 +48,8 @@ class Broker extends SCBroker {
         if (settings.debug) console.log('groupupdate', msg.id, msg.payload);
         this.publish('groupupdate', {id:msg.id, data:msg.payload});
         this.publish('clientcom', {id:"groupupdate", data:msg.payload});
+      } else if (msg.type=="userNamesList") {
+        this.publish('clientcom', {id:"userNamesList", data:msg.payload});
       } else {
         if (settings.debug) console.error('Uncatched masterMessage from broker:', msg);
       }
@@ -60,7 +62,7 @@ class Broker extends SCBroker {
         if (data.id == "drawpixel") db.insertUserData(data.data);
       } else if (channelname == "userState") {
         if (settings.debug) console.log('userState', data);
-        if(data.action == "created"){
+        if (data.action == "created") {
           this.publish('clientcom', {id:'updateUsernames', data:{
             groupid: data.groupid,
             grouporder: data.grouporder,

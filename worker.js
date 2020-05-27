@@ -94,6 +94,22 @@ class Worker extends SCWorker {
             replacingNPC.id
           )
           await db.updateSessionActive( replacingNPC.id, false );
+          await db.insertUserData({
+            "user_game_id":sessionData.sessionkey,
+            "user_loc_x":sessionData.currentXPos,
+            "user_loc_y":sessionData.currentYPos,
+            "angle":-1,
+            "group_id":sessionData.groupid,
+            "group_order":sessionData.grouporder,
+            "frame_number":-1
+          });
+        } else {
+          let dbUserData = await db.getUserSession(sessionData.sessionkey);
+          sessionData.groupid = dbUserData.group_id;
+          sessionData.grouporder = dbUserData.group_order;
+          sessionData.currentXPos = dbUserData.user_loc_x;
+          sessionData.currentYPos = dbUserData.user_loc_y;
+          console.log("dbUserData", dbUserData, sessionData.sessionkey);
         }
 
         sessionData.userNamesList = await db.getNames();
@@ -117,10 +133,13 @@ class Worker extends SCWorker {
 
       function initSessionTimeout(timeRemaining) {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
-        sessionTimeout = setTimeout(()=>{
+        sessionTimeout = setTimeout(async ()=>{
           if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
-          db.updateSessionActiveKey( socket.authToken.sessionkey, false );
-          db.updateSessionActive( socket.authToken.replacingNPC, true );
+          let dbUserData = await db.getUserSession(socket.authToken.sessionkey);
+          let dbUserDataNPC = await db.getUserSessionID(socket.authToken.replacingNPC);
+          await db.updateUserGameIndexes(dbUserDataNPC.session_key, dbUserData.group_id, dbUserData.group_order);
+          await db.updateSessionActiveKey( socket.authToken.sessionkey, false );
+          await db.updateSessionActive( socket.authToken.replacingNPC, true );
 
           socket.emit("sessionexpired");
           scServer.exchange.publish("userState", {
