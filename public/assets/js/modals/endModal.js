@@ -1,7 +1,7 @@
 /*
 Purpose: Modal popup when game ends with sheepbehaviour definition.
 Asks user to estimate their own sheepbehaviour amount and finaly shows the actual percentage.
-Contains a link to google forms
+Contains a link to google forms.
 
 Functions:
 */
