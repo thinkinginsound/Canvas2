@@ -21,7 +21,7 @@ export class EndModal extends DefaultModal {
       showFooterNegative:false,
       showFooterPositive:false,
     }
-    super(options); //TODO:Zet de timer terug naar 5 minuten
+    super(options);
     this.setBody($(`
       <div>
         <div id="page1">
@@ -32,7 +32,7 @@ export class EndModal extends DefaultModal {
             <canvas id="endPieChart" style="width: 100%;"></canvas>
           </div>
           </br>
-          <p> <span id="winnerColor"></span> won with a percentage of ${Store.get("session/winnerPercentage").toFixed(2)}%.</p>
+          <p> <span id="winnerColor"></span> won with a percentage of ${Store.get("session/winnerPercentage").toFixed(2)}% the canvas.</p>
           </br>
           <button type="button" class="btn btn-primary" id="nextButton">Next</button>
         </div>
@@ -72,7 +72,6 @@ export class EndModal extends DefaultModal {
         </div>
       </div>
     `));
-
 
     // Hide dom element with id 'page2' and 'page3'
     this.view.find("#page2").hide();
