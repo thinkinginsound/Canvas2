@@ -30,6 +30,7 @@ const sketch = function(p) {
     p.background(window.uiHandler.bgcolor);
     p.frameRate(10);
     calcPixelSize();
+    p.noLoop();
   }
 
   p.draw = function() {
