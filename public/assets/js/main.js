@@ -47,8 +47,6 @@ Store.add("session/endPercentage", []);
 Store.add("session/winnerColor", 0);
 Store.add("session/winnerPercentage", 0);
 
-console.log("UserStore", Store);
-
 window.audioclass = new AudioClass();
 window.uiHandler = new UIHandler();
 window.socketHandler = new SocketHandler();
