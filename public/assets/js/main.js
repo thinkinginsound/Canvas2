@@ -8,6 +8,7 @@ Functions:
 
 // Modals
 import { WelcomeModal } from  "./modals/welcomeModal.js"
+import { ErrorModal } from  "./modals/errorModal.js"
 import { AudioClass } from  "./audioclass.js"
 import { SocketHandler } from "./SocketHandler.js"
 import { UIHandler } from "./UIHandler.js"
@@ -57,7 +58,9 @@ $(function() {
 
   if(md.mobile() != null){
     //If needed make a fancy you're a mobile user, stop connecting page
-    window.location.href = "http://thinkinginsound.nl/";
+    let errorModal = new ErrorModal("Mobile devices not supported", "It seems that your device is not supported, please visit the site on a Linux, Windows or MacOs device.");
+    errorModal.show();
+    // window.location.href = "http://thinkinginsound.nl/";
     return false;
   }
 
