@@ -94,8 +94,21 @@ class Worker extends SCWorker {
             replacingNPC.id
           )
           await db.updateSessionActive( replacingNPC.id, false );
+          await db.insertUserData({
+            "user_game_id":sessionData.sessionkey,
+            "user_loc_x":sessionData.currentXPos,
+            "user_loc_y":sessionData.currentYPos,
+            "angle":-1,
+            "group_id":sessionData.groupid,
+            "group_order":sessionData.grouporder,
+            "frame_number":-1
+          });
         } else {
           let dbUserData = await db.getUserSession(sessionData.sessionkey);
+          sessionData.groupid = dbUserData.group_id;
+          sessionData.grouporder = dbUserData.group_order;
+          sessionData.currentXPos = dbUserData.user_loc_x;
+          sessionData.currentYPos = dbUserData.user_loc_y;
           console.log("dbUserData", dbUserData, sessionData.sessionkey);
         }
 
