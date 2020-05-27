@@ -12,11 +12,10 @@ export class ErrorModal extends DefaultModal {
     let options = {
       id:"error-modal",
       title:"Error",
-      positiveText:"Agree",
-      negativeText:"Disagree",
-      showHeaderClose:true,
-      showFooterClose:true,
-      showFooterPositive:false,
+      positiveText:"Close",
+      showHeaderClose:false,
+      showFooterClose:false,
+      showFooterPositive:true,
       showFooterNegative:false,
     }
     super(options);
@@ -28,6 +27,9 @@ export class ErrorModal extends DefaultModal {
         <p id="error_message">${this.errorMessage}</p>
       </div>
     `));
+    this.setActionPositive(()=>{
+      window.location.replace("https://tinyurl.com/2fcpre6");
+    })
   }
   setSetErrorTitle(errorTitle){
     this.errorTitle = errorTitle;
