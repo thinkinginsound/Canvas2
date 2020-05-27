@@ -165,7 +165,7 @@ class Worker extends SCWorker {
         console.log("npcGroups", npcGroups)
         let npcGroupsAmount = npcGroups.map(r=>r.length)
         console.log("npcGroupsAmount", npcGroupsAmount);
-        let group_id = Math.max(...npcGroupsAmount);
+        let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
         console.log("group_id", group_id);
         let npcGroup = npcGroups[group_id].map(r=>r.group_order);
         console.log("npcGroup", npcGroup);
