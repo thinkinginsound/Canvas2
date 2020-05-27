@@ -94,6 +94,9 @@ class Worker extends SCWorker {
             replacingNPC.id
           )
           await db.updateSessionActive( replacingNPC.id, false );
+        } else {
+          let dbUserData = await db.getUserSession(sessionData.sessionkey);
+          console.log("dbUserData", dbUserData, sessionData.sessionkey);
         }
 
         sessionData.userNamesList = await db.getNames();
@@ -117,10 +120,10 @@ class Worker extends SCWorker {
 
       function initSessionTimeout(timeRemaining) {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
-        sessionTimeout = setTimeout(()=>{
+        sessionTimeout = setTimeout(async ()=>{
           if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
-          db.updateSessionActiveKey( socket.authToken.sessionkey, false );
-          db.updateSessionActive( socket.authToken.replacingNPC, true );
+          await db.updateSessionActiveKey( socket.authToken.sessionkey, false );
+          await db.updateSessionActive( socket.authToken.replacingNPC, true );
 
           socket.emit("sessionexpired");
           scServer.exchange.publish("userState", {

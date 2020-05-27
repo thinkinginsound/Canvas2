@@ -48,6 +48,9 @@ class Broker extends SCBroker {
         if (settings.debug) console.log('groupupdate', msg.id, msg.payload);
         this.publish('groupupdate', {id:msg.id, data:msg.payload});
         this.publish('clientcom', {id:"groupupdate", data:msg.payload});
+      } else if (msg.type=="userNamesList") {
+        if (settings.debug) console.log('userNamesList', msg.id, msg.payload);
+        this.publish('clientcom', {id:"userNamesList", data:msg.payload});
       } else {
         if (settings.debug) console.error('Uncatched masterMessage from broker:', msg);
       }
