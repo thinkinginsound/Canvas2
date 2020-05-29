@@ -17,16 +17,20 @@ const sketch = function(p) {
   let padding = 20;
   let offsetX = 0;
   let offsetY = 0;
-  let canvasWidth = pixelSize * Store.get("server/canvaswidth", 40);
-  let canvasHeight = pixelSize * Store.get("server/canvasheight", 30);
+  let canvasWidth = pixelSize * Store.get("server/canvaswidth");
+  let canvasHeight = pixelSize * Store.get("server/canvasheight");
+  let firstDraw = true;
+  let lineX = 0;
+  let lineY = 0;
+  let fade = 255;
 
   p.setup = function(){
     // Create canvas with the size of the container and fill with bgcolor
-    p.createCanvas(container.offsetWidth, container.offsetHeight);
+    p.createCanvas(container.offsetWidth, container.offsetHeight, 'WEBGL' );
     p.background(window.uiHandler.bgcolor);
     p.frameRate(10);
     calcPixelSize();
-    // console.log(sheepPercentage);
+    p.noLoop();
   }
 
   p.draw = function() {
@@ -36,8 +40,11 @@ const sketch = function(p) {
 
     p.rect(offsetX, offsetY, canvasWidth , canvasHeight)
     if(!Store.get("server/ready"))return;
+    if(firstDraw)lineX = Store.get("session/currentXPos"),lineY = Store.get("session/currentYPos"),firstDraw=false;
     drawPixels();
     previewPixel();
+    highlightUsers();
+    if(fade != 0)drawGrid();
   };
   p.windowResized = function() {
     p.resizeCanvas(container.offsetWidth, container.offsetHeight);
@@ -63,7 +70,12 @@ const sketch = function(p) {
     p.noFill();
     p.strokeWeight(strokeWeight);
     p.stroke(0);
-    p.rect(offsetX + Store.get("session/currentXPos")*pixelSize - strokeWeight/2, offsetY + Store.get("session/currentYPos")*pixelSize - strokeWeight/2, pixelSize+strokeWeight/2, pixelSize+strokeWeight/2);
+    p.rect(
+      offsetX + Store.get("session/currentXPos")*pixelSize - strokeWeight/2,
+      offsetY + Store.get("session/currentYPos")*pixelSize - strokeWeight/2,
+      pixelSize+strokeWeight/2,
+      pixelSize+strokeWeight/2
+    );
   }
 
   function calcPixelSize(){
@@ -80,12 +92,48 @@ const sketch = function(p) {
       offsetX = padding + container.offsetWidth/2 - (Store.get("server/canvaswidth")/2)*pixelSize;
       offsetY = padding;
     }
-    canvasWidth = pixelSize*Store.get("server/canvaswidth");
-    canvasHeight = pixelSize*Store.get("server/canvasheight");
+    canvasWidth = pixelSize * Store.get("server/canvaswidth");
+    canvasHeight = pixelSize * Store.get("server/canvasheight");
     return pixelSize;
+  }
+  function highlightUsers() {
+    const currentPixelArray = Store.get("session/currentPixelArray");
+    currentPixelArray.forEach((group, i) => {
+      group.forEach((user, j) => {
+        // Ignore if index out of bounds
+        if(user[0] == -1 || user[1] == -1) return
+        // Ignore if is current user
+        if(i == Store.get("session/group_id") && j == Store.get("session/group_order")) return
+
+        let pixelcolor = window.uiHandler.colorlistPiechart[i];
+        p.fill(pixelcolor);
+        p.noStroke();
+        p.rect(
+          offsetX + user[0] * pixelSize-1,
+          offsetY + user[1] * pixelSize-1,
+          pixelSize,
+          pixelSize
+        );
+      });
+    });
+
+  }
+  function drawGrid() {
+    let x = offsetX + lineX*pixelSize;
+    let y = offsetY + lineY*pixelSize;
+    let strokeWeight = pixelSize/20;
+    p.strokeWeight(strokeWeight);
+    p.stroke(0,0,0,fade);
+    p.line(x-pixelSize,y,x+pixelSize*2,y);
+    p.line(x-pixelSize,y+pixelSize,x+pixelSize*2,y+pixelSize);
+    p.line(x,y-pixelSize,x,y+pixelSize*2);
+    p.line(x+pixelSize,y-pixelSize,x+pixelSize,y+pixelSize*2);
+    if(fade > 0 && Store.get("session/firstPixelPlaced")){
+      fade *= 0.9;
+    } else if(fade < 5){
+      fade = 0;
+    }
   }
 };
 
-let Sketch = new p5(sketch, container);
-
-export default Sketch;
+export default new p5(sketch, container);

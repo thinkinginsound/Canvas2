@@ -76,16 +76,19 @@ class Worker extends SCWorker {
           sessionData.sessionkey = crypto.randomBytes(16).toString('hex');
           sessionData.sessionstarted = new Date().getTime();
           let firstID = await findFirstID();
+          if (!firstID) {
+            socket.emit("sessionrevoked");
+            return;
+          }
           let replacingNPC = await db.getUserSession(firstID.session_key);
           sessionData.groupid = firstID.group_id;
           sessionData.grouporder = firstID.group_order;
           sessionData.currentXPos = replacingNPC.user_loc_x;
           sessionData.currentYPos = replacingNPC.user_loc_y;
           sessionData.username = await namebuilder();
-          sessionData.userNamesList = await db.getNames();
           sessionData.replacingNPC = replacingNPC.id;
 
-          db.insertUserGame(
+          await db.insertUserGame(
             sessionData.sessionkey,
             sessionData.username,
             sessionData.groupid,
@@ -94,12 +97,33 @@ class Worker extends SCWorker {
             true,
             replacingNPC.id
           )
-          db.updateSessionActive( replacingNPC.id, false );
+          await db.updateSessionActive( replacingNPC.id, false );
+          await db.insertUserData({
+            "user_game_id":sessionData.sessionkey,
+            "user_loc_x":sessionData.currentXPos,
+            "user_loc_y":sessionData.currentYPos,
+            "angle":-1,
+            "group_id":sessionData.groupid,
+            "group_order":sessionData.grouporder,
+            "frame_number":-1
+          });
+        } else {
+          let dbUserData = await db.getUserSession(sessionData.sessionkey);
+          sessionData.groupid = dbUserData.group_id;
+          sessionData.grouporder = dbUserData.group_order;
+          sessionData.currentXPos = dbUserData.user_loc_x;
+          sessionData.currentYPos = dbUserData.user_loc_y;
         }
+
+        sessionData.userNamesList = await db.getNames();
+
         socket.setAuthToken(sessionData);
         scServer.exchange.publish("userState", {
           action: "created",
-          id: sessionData.sessionkey
+          id: sessionData.sessionkey,
+          username: sessionData.username,
+          groupid: sessionData.groupid,
+          grouporder: sessionData.grouporder
         });
         initSessionTimeout(settings.sessionduration);
         res();
@@ -111,10 +135,13 @@ class Worker extends SCWorker {
 
       function initSessionTimeout(timeRemaining) {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
-        sessionTimeout = setTimeout(()=>{
+        sessionTimeout = setTimeout(async ()=>{
           if (settings.debug) console.log("Session timeout", socket.authToken.sessionkey);
-          db.updateSessionActiveKey( socket.authToken.sessionkey, false );
-          db.updateSessionActive( socket.authToken.replacingNPC, true );
+          let dbUserData = await db.getUserSession(socket.authToken.sessionkey);
+          let dbUserDataNPC = await db.getUserSessionID(socket.authToken.replacingNPC);
+          await db.updateUserGameIndexes(dbUserDataNPC.session_key, dbUserData.group_id, dbUserData.group_order);
+          await db.updateSessionActiveKey( socket.authToken.sessionkey, false );
+          await db.updateSessionActive( socket.authToken.replacingNPC, true );
 
           socket.emit("sessionexpired");
           scServer.exchange.publish("userState", {
@@ -126,15 +153,15 @@ class Worker extends SCWorker {
       }
       async function findFirstID () {
         let activeNPCs = await db.getActiveNPCs();
-        let npcGroups = []
+        let npcGroups = new Array(settings.maxgroups).fill(0).map(r=>new Array())
         activeNPCs.forEach((item, i) => {
-          if(!npcGroups[item.group_id])npcGroups[item.group_id] = []
           npcGroups[item.group_id].push(item);
         });
         let npcGroupsAmount = npcGroups.map(r=>r.length)
         let group_id = npcGroupsAmount.indexOf(Math.max(...npcGroupsAmount));
         let npcGroup = npcGroups[group_id].map(r=>r.group_order);
-        let group_order = npcGroup.indexOf(Math.min(...npcGroup));
+        let group_order = Math.min(...npcGroup);
+        if (group_id >= settings.maxgroups || group_order >= settings.maxusers) return false;
         let session_key = ""
         activeNPCs.forEach((item, i) => {
           if(item.group_id==group_id && item.group_order == group_order)

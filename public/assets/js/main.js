@@ -8,6 +8,7 @@ Functions:
 
 // Modals
 import { WelcomeModal } from  "./modals/welcomeModal.js"
+import { ErrorModal } from  "./modals/errorModal.js"
 import { AudioClass } from  "./audioclass.js"
 import { SocketHandler } from "./SocketHandler.js"
 import { UIHandler } from "./UIHandler.js"
@@ -34,14 +35,18 @@ Store.add("session/herdingstatus", []);
 Store.add("session/herdinghistory", []);
 Store.add("session/sheepPercentage", 0);
 Store.add("session/pixelArray", []);
+Store.add("session/currentPixelArray", []);
 Store.add("session/lastPixelPos", [null,null]);
 Store.add("session/currentXPos", 0);
 Store.add("session/currentYPos", 0);
 Store.add("session/hasPlayed", false);
 Store.add("session/username", "")
 Store.add("session/userNamesList", []);
-
-console.log("UserStore", Store);
+Store.add("session/firstPixelPlaced", false);
+Store.add("session/timeRemaining", -1)
+Store.add("session/endPercentage", []);
+Store.add("session/winnerColor", 0);
+Store.add("session/winnerPercentage", 0);
 
 window.audioclass = new AudioClass();
 window.uiHandler = new UIHandler();
@@ -53,7 +58,9 @@ $(function() {
 
   if(md.mobile() != null){
     //If needed make a fancy you're a mobile user, stop connecting page
-    window.location.href = "http://thinkinginsound.nl/";
+    let errorModal = new ErrorModal("Mobile devices not supported", "It seems that your device is not supported, please visit the site on a Linux, Windows or MacOs device.");
+    errorModal.show();
+    // window.location.href = "http://thinkinginsound.nl/";
     return false;
   }
 
