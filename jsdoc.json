@@ -3,7 +3,7 @@
         "allowUnknownTags": false
     },
     "source": {
-        "include": "broker.js",
+        "include": ".",
         "exclude": ["node_modules", "public/assets/libs", "public/socketcluster.js"],
         "includePattern": "\\.js$",
         "excludePattern": "(node_modules/|docs)"

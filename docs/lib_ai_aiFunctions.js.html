@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> lib/ai/aiFunctions.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                <div class="dropdown is-hoverable is-right">
+                    <a class="dropdown-trigger link">
+                        Tutorials
+                        <i class="fas fa-chevron-down fa-xs"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-content">
+                        
+                        </div>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#analyzeHerd">analyzeHerd</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#findIndicesOfMax">findIndicesOfMax</a></li><li><a href="global.html#findKeysOfMax">findKeysOfMax</a></li><li><a href="global.html#getFrameDataFor">getFrameDataFor</a></li><li><a href="global.html#groupSwitch">groupSwitch</a></li><li><a href="global.html#initAIProcess">initAIProcess</a></li><li><a href="global.html#initNPCs">initNPCs</a></li><li><a href="global.html#initTimer">initTimer</a></li><li><a href="global.html#npcMove">npcMove</a></li><li><a href="global.html#onClock">onClock</a></li><li><a href="global.html#saveHerding">saveHerding</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>lib/ai/aiFunctions.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const settings = require('../settings');
+
+const db = require("../db");
+const slowAnalysis = require("./slowAnalysis");
+const analysisTool = require("./analysisTool");
+
+/*
+  Deze class is om makkelijk uit een object één enkele value te krijgen. In dit
+  geval is dat 'angle'. Dit gebeurd door middel van een valueOf function, die
+  automatisch wordt aangeroepen als er een +-/* actie wordt uitgevoerd.
+*/
+class Wrapper {
+	constructor (obj) {
+    this.obj = obj;
+		this.x = this.obj.user_loc_x || 0;
+		this.y = this.obj.user_loc_y || 0;
+  }
+
+  valueOf () {
+    return this.obj.angle;
+  }
+}
+
+/**
+  @typedef UserAngles
+  @type {number[]}
+*/
+
+/**
+  @typedef FramesList
+  @type {UserAngles[]}
+*/
+
+/**
+	@typedef GroupFrames
+  @type {FramesList[]}
+*/
+let herdingResponse;
+
+/**
+	@description Functie waarin wordt berekend welke users of NPCs aan het herden zijn.
+  @param {number} frameNumber Huidig frame nummer
+*/
+async function analyzeHerd (frameNumber) {
+  /** @type {GroupFrames} */
+  const AIInput = [];
+  const data = await db.getFrameDataFor(frameNumber, settings.frameamount);
+  data.forEach(rec => {
+    let group = AIInput[rec.group_id];
+    if (!group) AIInput[rec.group_id] = group = new Array(settings.frameamount).fill(-1).map(() => new Array(settings.maxusers).fill(-1).map(() => new Wrapper(
+			{
+				id:-1,
+				angle:-1,
+				group_id: rec.group_id,
+				group_order: rec.group_order
+			}
+		)));
+		let frameNum = rec.frame_number - frameNumber - 1 + settings.frameamount;
+  	let frame = group[frameNum];
+    if (!frame) frame = group[frameNum] = new Array(settings.maxusers).fill(-1).map(()=>new Wrapper(
+			{
+				id:-1,
+				angle:-1,
+				group_id: rec.group_id,
+				group_order: rec.group_order
+			}
+		));
+    frame[rec.group_order] = new Wrapper(rec);
+  });
+
+  const updateIsHerding = [];
+  const updateIsNotHerding = [];
+  const AIResponse = AIInput.map((group)=>{
+		let AIframes = analysisTool.findSheep(group);
+    for(let userIndex = settings.maxusers - 1; userIndex >= 0; userIndex--){
+			const userElement = group[group.length - 1][userIndex];
+      const isHerding = AIframes[userIndex];
+			if(userElement == null) continue;
+			const groupIndex = userElement.obj.group_id;
+
+      if (isHerding) updateIsHerding.push(userElement.obj)
+      else updateIsNotHerding.push(userElement.obj)
+
+      if (!herdingResponse) herdingResponse = [];
+      if (!herdingResponse[groupIndex]) herdingResponse[groupIndex] = [];
+      herdingResponse[groupIndex][userIndex] = (herdingResponse[groupIndex][userIndex] || 0) + (isHerding?1:0);
+    }
+		return AIframes;
+  })
+
+  if (updateIsHerding.length) await db.saveHerding(updateIsHerding, db.IS_HERDING);
+  if (updateIsNotHerding.length) await db.saveHerding(updateIsNotHerding, db.IS_NOT_HERDING);
+  process.send({type:"herdingUpdate", payload:AIResponse})
+}
+
+/**
+	@description Check every n frames who are the users with the most herding behaviour per group. Switch these users
+*/
+async function groupSwitch(){
+	if (!herdingResponse) return;
+
+  let groupherdingdata = new Array(settings.maxgroups).fill(0);
+  let hasHerded = false;
+  herdingResponse.forEach((group,groupIndex)=>{
+    let herding = 0;
+    group.forEach((value) =>{
+      herding+=value;
+    });
+    if(herding > 0) hasHerded = true;
+    groupherdingdata[groupIndex] = herding;
+  });
+
+  if(hasHerded){
+    let maxherdingindexes = findIndicesOfMax(groupherdingdata, 2);
+		let herder1_groupId = maxherdingindexes[0];
+		let herder2_groupId = maxherdingindexes[1];
+    let herder1_groupOrder = findKeysOfMax(herdingResponse[herder1_groupId], 1)[0];
+    let herder2_groupOrder = findKeysOfMax(herdingResponse[herder2_groupId], 1)[0];
+
+		let herder1 = await db.getUserByIndexes(herder1_groupId, herder1_groupOrder);
+		let herder2 = await db.getUserByIndexes(herder2_groupId, herder2_groupOrder);
+
+		await db.updateUserGameIndexes(herder1.session_key, herder2.group_id, herder2.group_order);
+		await db.updateUserGameIndexes(herder2.session_key, herder1.group_id, herder1.group_order);
+
+
+		let herdupdate = {};
+		herdupdate[herder1.session_key] = {
+			session_key: herder1.session_key,
+			group_id: herder2.group_id,
+			group_order: herder2.group_order,
+			name_index: herder2.group_id * settings.maxusers + herder2.group_order,
+			name: herder1.username
+		};
+		herdupdate[herder2.session_key] = {
+			session_key:herder2.session_key,
+			group_id:herder1.group_id,
+			group_order:herder1.group_order,
+			name_index: herder1.group_id * settings.maxusers + herder1.group_order,
+			name: herder2.username
+
+		};
+		process.send({type:"groupupdate", payload:herdupdate})
+		process.send({type:"userNamesList", payload:await db.getNames()})
+  }
+
+  herdingResponse = undefined;
+}
+
+/**
+	@description Functie die de index van de hoogste twee waardes terug geeft.
+  @param {number[]} inp Array om in te zoeken
+  @param {number} count Hoeveel indexes hij terug moet geven
+  @return {number[]}
+*/
+function findIndicesOfMax(inp, count) {
+  var outp = new Array();
+  for (var i = 0; i &lt; inp.length; i++) {
+    outp.push(i);
+    if (outp.length > count) {
+      outp.sort(function(a, b) { return inp[b] - inp[a]; });
+      outp.pop();
+    }
+  }
+  return outp;
+}
+/**
+	@description Functie die de key van de hoogste twee waardes terug geeft.
+  @param {number[]} inp Array om in te zoeken
+  @param {number} count Hoeveel keys hij terug moet geven
+  @return {number[]}
+*/
+function findKeysOfMax(inp, count) {
+  keysSorted = Object.keys(inp).sort(function(a,b){return inp[b]-inp[a]})
+  return keysSorted.slice(0, count);
+}
+
+module.exports = {
+    analyzeHerd : analyzeHerd,
+		groupSwitch: groupSwitch
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.4</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>

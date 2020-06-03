@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> Home</title>
+  <title> lib/aiProcess.js</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -83,33 +85,57 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Title</p>
-                    <h1>Home</h1>
+                    <p>Source</p>
+                    <h1>lib/aiProcess.js</h1>
                 </header>
                 
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { performance } = require('perf_hooks');
+
+const settings = require('./settings');
+const db = require("./db");
+
+const { analyzeHerd, groupSwitch } = require("./ai/aiFunctions");
+
+/**
+	@description Functie waarin wordt berekend welke users of NPCs aan het herden zijn.
+  @param {number} frameNumber Huidig frame nummer
+*/
+async function initAIProcess(){
+
+}
+
+/**
+	@description Functie die reageert op de clock. In deze functie word ieder frame de functie analyzeHerd aangeroepen. Daarbij wordt om de 20 frames groupSwitch uitgevoerd.
+  @param {number} clockCounter Huidig frame nummer
+*/
+async function onClock(clockCounter){
+  await analyzeHerd(clockCounter);
+  if(clockCounter%settings.groupSwitchFrames==1){
+    await groupSwitch();
+  }
+}
+
+/**
+	@description Hier komt alle data van de broker binnen.
+*/
+process.on('message', (msg)=>{
+	if (msg.type == "initAIProcess") initAIProcess();
+  else if (msg.type == "onClock") onClock(msg.payload);
+})
 
 
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
+module.exports = {
+  initAIProcess : initAIProcess
+}
+</code></pre>
+        </article>
+    </section>
 
 
 
