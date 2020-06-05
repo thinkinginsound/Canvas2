@@ -20,7 +20,7 @@ Store.add("server/ready", false);
 Store.add("server/maxgroups", 0);
 Store.add("server/maxusers", 0);
 Store.add("server/clockspeed", 1000);
-Store.add("server/sessionduration", 1000*60*5);
+Store.add("server/sessionduration", 1000*60*3);
 Store.add("server/canvaswidth", 30);
 Store.add("server/canvasheight", 30);
 Store.add("server/sessionkey", -1);
