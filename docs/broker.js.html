@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> Home</title>
+  <title> broker.js</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -83,324 +85,98 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Title</p>
-                    <h1>Home</h1>
+                    <p>Source</p>
+                    <h1>broker.js</h1>
                 </header>
                 
 
 
 
     
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>broker.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>Deze thread zorgt voor de communicatie tussen alle processen.</p></div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="broker.js.html" class="button">View Source</a>
-            <span>
-                <a href="broker.js.html">broker.js</a>, <a href="broker.js.html#line1">line 1</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-        
-    
-    </div>
-    
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>server.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>De main thread word gestart door node server.js te draaien. Deze thread zorgt
-er voor dat alle andere threads worden gestart. Deze thread aangemaakt door
-de socketcluster library en is NIET bedoeld om in te werken.</p>
-  <hr>
-  This is the SocketCluster master controller file.
-  It is responsible for bootstrapping the SocketCluster master process.
-  Be careful when modifying the options object below.
-  If you plan to run SCC on Kubernetes or another orchestrator at some point
-  in the future, avoid changing the environment variable names below as
-  each one has a specific meaning within the SC ecosystem.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="server.js.html" class="button">View Source</a>
-            <span>
-                <a href="server.js.html">server.js</a>, <a href="server.js.html#line1">line 1</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-        
-    
-    </div>
-    
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>worker.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>In deze thread wordt de communicatie met de client (socket) gedaan.</p></div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="worker.js.html" class="button">View Source</a>
-            <span>
-                <a href="worker.js.html">worker.js</a>, <a href="worker.js.html#line1">line 1</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-        
-    
-    </div>
-    
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ @file broker.js
+ @description
+  Deze thread zorgt voor de communicatie tussen alle processen.
+*/
+
+var SCBroker = require('socketcluster/scbroker');
+var scClusterBrokerClient = require('scc-broker-client');
+
+var settings = require('./lib/settings.js');
+const db = require("./lib/db");
+
+class Broker extends SCBroker {
+  run() {
+    console.log('   >> Broker PID:', process.pid);
+
+    /*
+      If either `SCC_STATE_SERVER_HOST='123.45.67.89' node server.js` environment variable is set,
+      or `node server.js --cssh '123.45.67.89'` argument is provided,
+      the broker will try to attach itself to the SC Cluster for automatic horizontal scalability.
+      This is mostly intended for the Kubernetes deployment of SocketCluster - In this case,
+      The clustering/sharding all happens automatically.
+    */
+    if (this.options.clusterStateServerHost) {
+      scClusterBrokerClient.attach(this, {
+        stateServerHost: this.options.clusterStateServerHost,
+        stateServerPort: this.options.clusterStateServerPort,
+        mappingEngine: this.options.clusterMappingEngine,
+        clientPoolSize: this.options.clusterClientPoolSize,
+        authKey: this.options.clusterAuthKey,
+        stateServerConnectTimeout: this.options.clusterStateServerConnectTimeout,
+        stateServerAckTimeout: this.options.clusterStateServerAckTimeout,
+        stateServerReconnectRandomness: this.options.clusterStateServerReconnectRandomness
+      });
+    }
+
+    // Ontvangt data vanuit andere processen/threads.
+    this.on('masterMessage', (msg, respond) => {
+      // Verstuur een bericht met ID 'channelname' en data 'msg' :
+      // this.publish('channelname', msg);
+
+      if (msg.type=="onClock") {
+        console.log('clock', msg.payload);
+        this.publish('onClock', msg.payload);
+      } else if (msg.type=="broadcast") {
+        this.publish('clientcom', {id:msg.id, data:msg.payload});
+      } else if (msg.type=="herdingUpdate") {
+        this.publish('herdingUpdate', {id:msg.id, data:msg.payload});
+        this.publish('clientcom', {id:"herdingUpdate", data:msg.payload});
+      } else if (msg.type=="groupupdate") {
+        this.publish('groupupdate', {id:msg.id, data:msg.payload});
+        this.publish('clientcom', {id:"groupupdate", data:msg.payload});
+      } else if (msg.type=="userNamesList") {
+        this.publish('clientcom', {id:"userNamesList", data:msg.payload});
+      } else {
+        if (settings.debug) console.error('Uncatched masterMessage from broker:', msg);
+      }
+    });
+
+    // Ontvangt data vanuit de CLIENT
+    this.on('publish', (channelname, data) => {
+      if (channelname == "clientcom") {
+        if (data.id == "drawpixel") db.insertUserData(data.data);
+      } else if (channelname == "userState") {
+        if (data.action == "created") {
+          this.publish('clientcom', {id:'updateUsernames', data:{
+            groupid: data.groupid,
+            grouporder: data.grouporder,
+            username: data.username
+          }});
+        }
+      } else {
+        console.log('Uncatched publish from broker:', channelname, data);
+      }
+    });
+  }
+}
+
+new Broker();
+</code></pre>
+        </article>
+    </section>
 
 
 

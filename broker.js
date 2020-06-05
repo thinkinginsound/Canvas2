@@ -1,3 +1,9 @@
+/**
+ @file broker.js
+ @description
+  Deze thread zorgt voor de communicatie tussen alle processen.
+*/
+
 var SCBroker = require('socketcluster/scbroker');
 var scClusterBrokerClient = require('scc-broker-client');
 
