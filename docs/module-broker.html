@@ -5,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> Home</title>
+  <title> broker</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -83,36 +83,10 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Title</p>
-                    <h1>Home</h1>
+                    <p>Module</p>
+                    <h1>broker</h1>
                 </header>
                 
-
-
-
-    
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
 
 
 
@@ -121,7 +95,8 @@
 
 <header>
     
-        <h2>server.js</h2>
+        
+            
         
     
 </header>
@@ -130,19 +105,23 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>De main thread word gestart door node server.js te draaien. Deze thread zorgt
-er voor dat alle andere threads worden gestart. Deze thread aangemaakt door
-de socketcluster library en is NIET bedoeld om in te werken.</p>
-  <hr>
-  This is the SocketCluster master controller file.
-  It is responsible for bootstrapping the SocketCluster master process.
-  Be careful when modifying the options object below.
-  If you plan to run SCC on Kubernetes or another orchestrator at some point
-  in the future, avoid changing the environment variable names below as
-  each one has a specific meaning within the SC ecosystem.</div>
+            <div class="description"><p>Deze thread zorgt voor de communicatie tussen alle processen.</p></div>
         
 
         
+            
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <dl class="details">
@@ -178,13 +157,33 @@ de socketcluster library en is NIET bedoeld om in te werken.</p>
 
     
         <p class="tag-source">
-            <a href="server.js.html" class="button">View Source</a>
+            <a href="broker.js.html" class="button">View Source</a>
             <span>
-                <a href="server.js.html">server.js</a>, <a href="server.js.html#line1">line 1</a>
+                <a href="broker.js.html">broker.js</a>, <a href="broker.js.html#line1">line 1</a>
             </span>
         </p>
     
 </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         
@@ -205,6 +204,365 @@ de socketcluster library en is NIET bedoeld om in te werken.</p>
 
     
 
+    
+        <div class='vertical-section'>
+            <h1>Methods</h1>
+            <div class="members">
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="~onMasterMessage">
+        <a class="href-link" href="#~onMasterMessage">#</a>
+        
+            
+                <span class='tag'>inner</span>
+            
+        
+        <span class="code-name">
+            
+                onMasterMessage<span class="signature">()</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Handle messages send from other processes/threads</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+<div class="table-container">
+    <table class="props table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>msg</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">object</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>Data send by the process</p></td>
+</tr>
+
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>respond</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">function</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>Funtion to be called on success</p></td>
+</tr>
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="broker.js.html" class="button">View Source</a>
+            <span>
+                <a href="broker.js.html">broker.js</a>, <a href="broker.js.html#line37">line 37</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="~onMasterMessage">
+        <a class="href-link" href="#~onMasterMessage">#</a>
+        
+            
+                <span class='tag'>inner</span>
+            
+        
+        <span class="code-name">
+            
+                onMasterMessage<span class="signature">()</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+    <div class="description">
+        <p>Handle messages send from Clients</p>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+<div class="table-container">
+    <table class="props table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>channelname</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">string</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>Name of channel</p></td>
+</tr>
+
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>data</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">object</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>Data send by the client</p></td>
+</tr>
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="broker.js.html" class="button">View Source</a>
+            <span>
+                <a href="broker.js.html">broker.js</a>, <a href="broker.js.html#line65">line 65</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            
+            </div>
+        </div>
     
 
     

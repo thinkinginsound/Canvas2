@@ -7,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> lib/aiProcess.js</title>
+  <title> lib/npcAI/defaultNPC.js</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -86,7 +86,7 @@
             <div class="content">
                 <header class="page-title">
                     <p>Source</p>
-                    <h1>lib/aiProcess.js</h1>
+                    <h1>lib/npcAI/defaultNPC.js</h1>
                 </header>
                 
 
@@ -96,49 +96,93 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- @module aiProcess
- @description
-  meh
+  @class defaultNPC
+  @property {number} canvaswidth width of the canvas in witch the NPC may move
+  @property {number} canvasheight height of the canvas in witch the NPC may move
+  @property {number} startX start x position of the NPC
+  @property {number} startY start y position of the NPC
+  @property {string} npcID ID of the NPC
+  @property {string} username Name of the NPC
 */
 
-const { performance } = require('perf_hooks');
+class defaultNPC {
+  constructor(canvaswidth, canvasheight, startX, startY, npcID, username){
+    this.type = "normalUser"
+    this.npc = true;
+    this.npcID = npcID
+    this.sessionid = undefined;
+    this.canvaswidth = canvaswidth;
+    this.canvasheight = canvasheight;
+    this.x = startX;
+    this.y = startY;
+    this.prevX = this.x;
+    this.prevY = this.y;
+    this.username = username;
+  }
 
-const settings = require('./settings');
-const db = require("./db");
+  move(){
+    //default
+  }
 
-const { analyzeHerd, groupSwitch } = require("./ai/aiFunctions");
+  save(groupIndex, userIndex){
+    let rad = Math.atan2(this.y - this.prevY, this.prevX - this.x);
+    let deg = (rad * (180 / Math.PI) + 180) % 360;
+    let sendable = {
+      user_game_id: this.sessionID,
+      user_loc_x: this.x,
+      user_loc_y: this.y,
+      angle: deg,
+      group_id: groupIndex,
+      group_order: userIndex,
+      frame_number: global.clockCounter
+    }
+    return sendable;
+  }
 
-/**
-	@description Functie waarin wordt berekend welke users of NPCs aan het herden zijn.
-  @param {number} frameNumber Huidig frame nummer
-*/
-async function initAIProcess(){
+  setPosition(x, y){
+    this.xPos = x;
+    this.yPos = y;
+  }
+  get xPos(){ return this.x; }
+  get yPos(){ return this.y; }
+  set xPos(value){
+    if(value&lt;0)this.x=0;
+    else if(value>this.canvaswidth)this.x=this.canvaswidth;
+    else this.x = value;
+  }
+  set yPos(value){
+    if(value&lt;0)this.y=0;
+    else if(value>this.canvasheight)this.y=this.canvasheight;
+    else this.y = value;
+  }
 
-}
+  set sessionID(sessionID){
+    this.sessionid = sessionID;
+  }
 
-/**
-	@description Functie die reageert op de clock. In deze functie word ieder frame de functie analyzeHerd aangeroepen. Daarbij wordt om de 20 frames groupSwitch uitgevoerd.
-  @param {number} clockCounter Huidig frame nummer
-*/
-async function onClock(clockCounter){
-  await analyzeHerd(clockCounter);
-  if(clockCounter%settings.groupSwitchFrames==1){
-    await groupSwitch();
+  get sessionID(){
+    if(this.sessionid === undefined) return this.npcID;
+    else return this.sessionid;
+  }
+
+  set npcState(npc){
+    this.npc = npc
+  }
+
+  get npcState(){
+    return this.npc;
+  }
+
+  set userName(username){
+    this.username = username;
+  }
+
+  get userName(){
+    return this.username;
   }
 }
 
-/**
-	@description Hier komt alle data van de broker binnen.
-*/
-process.on('message', (msg)=>{
-	if (msg.type == "initAIProcess") initAIProcess();
-  else if (msg.type == "onClock") onClock(msg.payload);
-})
-
-
-module.exports = {
-  initAIProcess : initAIProcess
-}
+module.exports = defaultNPC
 </code></pre>
         </article>
     </section>

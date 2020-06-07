@@ -1,5 +1,5 @@
 /**
- @file worker.js
+ @module worker
  @description
   In deze thread wordt de communicatie met de client (socket) gedaan.
 */
@@ -49,7 +49,11 @@ class Worker extends SCWorker {
 
     const userStateChannel = this.userStateChannel = this.exchange.subscribe("userState");
 
-    // Handle incoming websocket connections and listen for events.
+    /**
+      @function onConnection
+      @description Handle incoming websocket connections and listen for events.
+      @property {object} socket Socket object that got connected
+    */
     scServer.on('connection', function (socket) {
       // Check if session exists
       let sessionTimeout;
@@ -64,6 +68,12 @@ class Worker extends SCWorker {
         }
       }
 
+      /**
+        @function onAuthRequest
+        @description Start socket session
+        @property {object} data Data send by the client
+        @property {function} res Funtion to be called on success
+      */
       socket.on('auth_request', async function (data, res) {
         if (settings.debug) console.log("Auth Request received", data);
 
@@ -134,11 +144,17 @@ class Worker extends SCWorker {
         initSessionTimeout(settings.sessionduration);
         res();
       });
-      socket.on('drawpixel', function (data) {
-        if (!socket.authToken) return;
-        // Sla data op in db
-      });
+      // socket.on('drawpixel', function (data) {
+      //   if (!socket.authToken) return;
+      //   // Sla data op in db
+      // });
 
+      /**
+       * @module worker
+       * @function initSessionTimeout
+       * @description Sets the timeout for the session
+       * @property {number} timeRemaining Time remaining before session should be expired
+       */
       function initSessionTimeout(timeRemaining) {
         if (settings.debug) console.log("Session timeout in ", timeRemaining);
         sessionTimeout = setTimeout(async ()=>{
@@ -157,6 +173,19 @@ class Worker extends SCWorker {
           socket.setAuthToken({});
         }, timeRemaining)
       }
+
+      /**
+       * @typedef {Object} FirstID
+       * @property {string} session_key Session key of npc at index
+       * @property {number} group_id - Group of replacing npc
+       * @property {number} group_order - Order of replacing npc
+       */
+      /**
+       * @module worker
+       * @function findFirstID
+       * @description Find first available replacable npc in database
+       * @returns {FirstID} Object with session_key, group_id and group_order
+       */
       async function findFirstID () {
         let activeNPCs = await db.getActiveNPCs();
         let npcGroups = new Array(settings.maxgroups).fill(0).map(r=>new Array())

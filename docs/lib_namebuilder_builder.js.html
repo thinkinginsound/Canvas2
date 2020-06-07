@@ -7,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> lib/aiProcess.js</title>
+  <title> lib/namebuilder/builder.js</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -86,7 +86,7 @@
             <div class="content">
                 <header class="page-title">
                     <p>Source</p>
-                    <h1>lib/aiProcess.js</h1>
+                    <h1>lib/namebuilder/builder.js</h1>
                 </header>
                 
 
@@ -96,49 +96,27 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- @module aiProcess
+ @module namebuilder
  @description
   meh
 */
 
-const { performance } = require('perf_hooks');
+const NbAdjectives = require("./adjectives.json");
+const NbNouns = require("./nouns.json");
 
-const settings = require('./settings');
-const db = require("./db");
-
-const { analyzeHerd, groupSwitch } = require("./ai/aiFunctions");
-
-/**
-	@description Functie waarin wordt berekend welke users of NPCs aan het herden zijn.
-  @param {number} frameNumber Huidig frame nummer
-*/
-async function initAIProcess(){
-
-}
-
-/**
-	@description Functie die reageert op de clock. In deze functie word ieder frame de functie analyzeHerd aangeroepen. Daarbij wordt om de 20 frames groupSwitch uitgevoerd.
-  @param {number} clockCounter Huidig frame nummer
-*/
-async function onClock(clockCounter){
-  await analyzeHerd(clockCounter);
-  if(clockCounter%settings.groupSwitchFrames==1){
-    await groupSwitch();
+const db = require("../db");
+async function namebuilder() {
+  let adjective = NbAdjectives[Math.floor(Math.random()*(NbAdjectives.length))];
+  let noun = NbNouns[Math.floor(Math.random()*(NbNouns.length))];
+  let username = `${adjective} ${noun}`;
+  let usernames = await db.getNames();
+  if(!username || usernames.indexOf(username) != -1){
+    username = await namebuilder();
   }
+  return username;
 }
 
-/**
-	@description Hier komt alle data van de broker binnen.
-*/
-process.on('message', (msg)=>{
-	if (msg.type == "initAIProcess") initAIProcess();
-  else if (msg.type == "onClock") onClock(msg.payload);
-})
-
-
-module.exports = {
-  initAIProcess : initAIProcess
-}
+exports.namebuilder = namebuilder;
 </code></pre>
         </article>
     </section>

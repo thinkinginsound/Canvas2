@@ -7,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> lib/aiProcess.js</title>
+  <title> lib/ai/slowAnalysis.js</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -86,7 +86,7 @@
             <div class="content">
                 <header class="page-title">
                     <p>Source</p>
-                    <h1>lib/aiProcess.js</h1>
+                    <h1>lib/ai/slowAnalysis.js</h1>
                 </header>
                 
 
@@ -96,49 +96,65 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- @module aiProcess
+ @module slowAnalysis
  @description
   meh
 */
 
-const { performance } = require('perf_hooks');
+function createLabels(matrix,evaluationFrames,offset){
+    if(evaluationFrames &lt;= 2 || offset &lt; 0){
+        throw "Not allowed to set frames less then 2 or offset lesser then 0";
+    }
+    let features = matrix;
+    //Similair function to the numpy.zeros(w,h) function
+    let zeros = (w, h, v = 0) => Array.from(new Array(h), _ => Array(w).fill(v));
+    //Prepare labels with same w and h as features but already filles with zeros
+    let labels = zeros(features[0].length,features.length)
+    let listToEvaluate = [];
 
-const settings = require('./settings');
-const db = require("./db");
-
-const { analyzeHerd, groupSwitch } = require("./ai/aiFunctions");
-
-/**
-	@description Functie waarin wordt berekend welke users of NPCs aan het herden zijn.
-  @param {number} frameNumber Huidig frame nummer
-*/
-async function initAIProcess(){
-
+    for(let colNum = 0; colNum &lt; features[0].length; colNum++ ){                                //features[0].length
+        for(let rowNum = 0; rowNum &lt; features.length; rowNum++){                                //Iterate through a number of columns and rows of features list
+            for(let evalListFill = 0; evalListFill &lt; evaluationFrames; evalListFill++){     //Until number of evaluation numbers is reached dont proceed
+                if(evaluationFrames &lt;= features.slice(rowNum).length){
+                    listToEvaluate.push(features[rowNum + evalListFill][colNum]);
+                }
+            }                                                                                   //Start evaluation process
+            for(let columnIndex = 0; columnIndex &lt; features[0].length; columnIndex++){         //features[0].length
+                let evaluationIterator = 0;
+                let startIndex = [];
+                let offsetIterator = 0;
+                for(let rowIndex = 0; rowIndex &lt; features.length; rowIndex++){
+                    if(columnIndex != colNum &amp;&amp; rowIndex > rowNum){
+                        if(features[rowIndex][columnIndex] == listToEvaluate[evaluationIterator] &amp;&amp; offsetIterator &lt;= offset){
+                            if(startIndex.length == 0) startIndex = [rowIndex,columnIndex];
+                            if(evaluationIterator == listToEvaluate.length-1){
+                                for(let writer=0; writer &lt; rowIndex-startIndex[0]+1;writer++){
+                                    labels[(startIndex[0]+writer)][columnIndex] = 1;
+                                }
+                                evaluationIterator = 0;
+                                offsetIterator = 0;
+                                startIndex = [];
+                            } else{
+                                evaluationIterator++;
+                            }
+                        } else if(offsetIterator > offset){
+                            evaluationIterator = 0;
+                            offsetIterator = 0 ;
+                            startIndex = [];
+                        } else if(startIndex.length >= 1){
+                            offsetIterator++;
+                        }
+                    }
+                }
+            }
+            listToEvaluate = [];
+        }
+        listToEvaluate = [];
+    }
+    return labels;
 }
 
-/**
-	@description Functie die reageert op de clock. In deze functie word ieder frame de functie analyzeHerd aangeroepen. Daarbij wordt om de 20 frames groupSwitch uitgevoerd.
-  @param {number} clockCounter Huidig frame nummer
-*/
-async function onClock(clockCounter){
-  await analyzeHerd(clockCounter);
-  if(clockCounter%settings.groupSwitchFrames==1){
-    await groupSwitch();
-  }
-}
-
-/**
-	@description Hier komt alle data van de broker binnen.
-*/
-process.on('message', (msg)=>{
-	if (msg.type == "initAIProcess") initAIProcess();
-  else if (msg.type == "onClock") onClock(msg.payload);
-})
-
-
-module.exports = {
-  initAIProcess : initAIProcess
-}
+module.exports = {createLabels}
 </code></pre>
         </article>
     </section>

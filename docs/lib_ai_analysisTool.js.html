@@ -7,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> lib/aiProcess.js</title>
+  <title> lib/ai/analysisTool.js</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -86,7 +86,7 @@
             <div class="content">
                 <header class="page-title">
                     <p>Source</p>
-                    <h1>lib/aiProcess.js</h1>
+                    <h1>lib/ai/analysisTool.js</h1>
                 </header>
                 
 
@@ -96,48 +96,93 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- @module aiProcess
+ @module analysisTool
  @description
   meh
 */
 
-const { performance } = require('perf_hooks');
+const settings = require('../settings');
 
-const settings = require('./settings');
-const db = require("./db");
+let testList = [
+    [
+        [0,1],
+        [1,2],
+        [8,8],
+        [6,9],
+    ],
+    [
+        [1,2],
+        [2,3],
+        [8,8],
+        [6,9],
+    ],
+    [
+        [2,3],
+        [2,3],
+        [8,8],
+        [6,9],
+    ],
+    [
+        [3,3],
+        [3,4],
+        [8,8],
+        [6,9],
+    ],
+]
 
-const { analyzeHerd, groupSwitch } = require("./ai/aiFunctions");
-
-/**
-	@description Functie waarin wordt berekend welke users of NPCs aan het herden zijn.
-  @param {number} frameNumber Huidig frame nummer
-*/
-async function initAIProcess(){
-
+function calcDegrees(x,y){
+    if(x == 0 &amp;&amp; y == 0){
+        return -1;
+    } else {
+        return (360 - (Math.atan2(y,x) * (180 / Math.PI)) + 90) % 360;
+    }
 }
 
-/**
-	@description Functie die reageert op de clock. In deze functie word ieder frame de functie analyzeHerd aangeroepen. Daarbij wordt om de 20 frames groupSwitch uitgevoerd.
-  @param {number} clockCounter Huidig frame nummer
-*/
-async function onClock(clockCounter){
-  await analyzeHerd(clockCounter);
-  if(clockCounter%settings.groupSwitchFrames==1){
-    await groupSwitch();
-  }
+function roundDegreesCircle(Degrees){
+    if(Degrees !== -1){
+        let roundedDegrees = Degrees+45;
+        while(roundedDegrees > 45){
+            roundedDegrees -= 45;
+        }
+        if(roundedDegrees > 45/2){
+            roundedDegrees = 45 - roundedDegrees;
+        } else {
+            roundedDegrees = roundedDegrees * -1;
+        }
+        Degrees += roundedDegrees;
+    }
+    return Degrees;
 }
 
-/**
-	@description Hier komt alle data van de broker binnen.
-*/
-process.on('message', (msg)=>{
-	if (msg.type == "initAIProcess") initAIProcess();
-  else if (msg.type == "onClock") onClock(msg.payload);
-})
+function calculateAverages(list){
+    let total = 0;
+    let frequency = 0;
+    let averages = [];
+    for(columns = 0; columns &lt; list[0].length; columns++){
+        total = 0;
+        frequency = 0;
+        averages.push(
+            roundDegreesCircle(
+                calcDegrees(list[list.length-1][columns].x - list[0][columns].x, list[list.length-1][columns].y - list[0][columns].y)
+            )
+        );
+    }
+    return averages;
+}
 
+function findSheep(list){
+    averagesList = calculateAverages(list);
+    let sheep = new Array(settings.maxusers).fill(0); //set to global user amount
+    averagesList.forEach((degree,index)=>{
+        for(herder = 0; herder &lt; averagesList.length; herder++){
+            if(herder != index &amp;&amp; degree == averagesList[herder]) sheep[herder] = 1;
+        }
+    });
+    return sheep;
+}
 
 module.exports = {
-  initAIProcess : initAIProcess
+    findSheep : findSheep
 }
 </code></pre>
         </article>

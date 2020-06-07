@@ -78,7 +78,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#analyzeHerd">analyzeHerd</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#findIndicesOfMax">findIndicesOfMax</a></li><li><a href="global.html#findKeysOfMax">findKeysOfMax</a></li><li><a href="global.html#getFrameDataFor">getFrameDataFor</a></li><li><a href="global.html#groupSwitch">groupSwitch</a></li><li><a href="global.html#initAIProcess">initAIProcess</a></li><li><a href="global.html#initNPCs">initNPCs</a></li><li><a href="global.html#initTimer">initTimer</a></li><li><a href="global.html#npcMove">npcMove</a></li><li><a href="global.html#onClock">onClock</a></li><li><a href="global.html#saveHerding">saveHerding</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-simpleNPC.html">simpleNPC</a></li><li><a href="module-slowAnalysis.html">slowAnalysis</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
                 
             </nav>
         </div>
@@ -96,7 +96,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- @file broker.js
+ @module broker
  @description
   Deze thread zorgt voor de communicatie tussen alle processen.
 */
@@ -131,7 +131,12 @@ class Broker extends SCBroker {
       });
     }
 
-    // Ontvangt data vanuit andere processen/threads.
+    /**
+      @function onMasterMessage
+      @description Handle messages send from other processes/threads
+      @property {object} msg Data send by the process
+      @property {function} respond Funtion to be called on success
+    */
     this.on('masterMessage', (msg, respond) => {
       // Verstuur een bericht met ID 'channelname' en data 'msg' :
       // this.publish('channelname', msg);
@@ -154,7 +159,12 @@ class Broker extends SCBroker {
       }
     });
 
-    // Ontvangt data vanuit de CLIENT
+    /**
+      @function onMasterMessage
+      @description Handle messages send from Clients
+      @property {string} channelname Name of channel
+      @property {object} data Data send by the client
+    */
     this.on('publish', (channelname, data) => {
       if (channelname == "clientcom") {
         if (data.id == "drawpixel") db.insertUserData(data.data);

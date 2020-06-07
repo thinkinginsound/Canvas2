@@ -78,7 +78,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#analyzeHerd">analyzeHerd</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#findIndicesOfMax">findIndicesOfMax</a></li><li><a href="global.html#findKeysOfMax">findKeysOfMax</a></li><li><a href="global.html#getFrameDataFor">getFrameDataFor</a></li><li><a href="global.html#groupSwitch">groupSwitch</a></li><li><a href="global.html#initAIProcess">initAIProcess</a></li><li><a href="global.html#initNPCs">initNPCs</a></li><li><a href="global.html#initTimer">initTimer</a></li><li><a href="global.html#npcMove">npcMove</a></li><li><a href="global.html#onClock">onClock</a></li><li><a href="global.html#saveHerding">saveHerding</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-simpleNPC.html">simpleNPC</a></li><li><a href="module-slowAnalysis.html">slowAnalysis</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
                 
             </nav>
         </div>
@@ -95,15 +95,22 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const settings = require("./settings");
+            <pre class="prettyprint source linenums"><code>/**
+ @module db
+ @description
+  meh
+*/
+
+const settings = require("./settings");
 const sqlite = require("sqlite");
 const pathlib = require("path");
 
 const { performance } = require('perf_hooks');
 
+let db;
+
 /** @typedef userData
  * @property {number} id id of the user_data table
- * @property {string} session_key The identifier of the session of this user
  * @property {number} user_game_id The id of the user_games table
  * @property {number} user_loc_x The x position of this user at this moment
  * @property {number} user_loc_y The y position of this user at this moment
@@ -114,8 +121,31 @@ const { performance } = require('perf_hooks');
  * @property {number} frame_number Which frame number are we at
  * @property {date} timestamp The timestamp of this moment
  */
+/** @typedef userGame
+ * @property {number} id id of the user_games table
+ * @property {string} session_key The identifier of the session of this user
+ * @property {number} username The id of the user_games table
+ * @property {number} group_id to which group this user belongs at this moment
+ * @property {number} group_order the position of this user within this group
+ * @property {boolean} is_mobile If the user is running on a mobile phone
+ * @property {number} self_reflection Value the user thought was the herding percentage
+ * @property {number} herding_percentage Calculated herding percentage
+ * @property {date} last_login The timestamp of session created
+ * @property {boolean} is_bot If the session is occupied by a bod
+ * @property {boolean} is_active If the session is active
+ * @property {number} replaces_npc ID of NPC being replaced
+ * @property {number} user_loc_x The x position of this user at this moment
+ * @property {number} user_loc_y The y position of this user at this moment
+ */
+/** @typedef userGameSimple
+  * @property {string} session_key The identifier of the session of this user
+  * @property {number} group_id to which group this user belongs at this moment
+  * @property {number} group_order the position of this user within this group
+  */
 
-let db;
+/**
+  @description Init the database
+*/
 async function setup () {
   try {
     db = await sqlite.open("database.sqlite", {
@@ -131,8 +161,10 @@ async function setup () {
 }
 
 /**
+  @description Get framedata from database for IDs between now and now-&lt;start>
+  @async
   @param {number} frameNumber Which frame number are we at
-  @param {number} [start] How many numbers to look back
+  @param {number} [start=30] How many numbers to look back
   @return {userData[]}
 */
 exports.getFrameDataFor = async function (frameNumber, start = 30) {
@@ -157,8 +189,10 @@ exports.getFrameDataFor = async function (frameNumber, start = 30) {
 exports.IS_HERDING = true;
 exports.IS_NOT_HERDING = false;
 /**
-  @param {userData[]} records Which frame number are we at
-  @param {boolean} [isHerding] How many numbers to look back
+  @description Save herding status to database for multiple
+  @async
+  @param {userData[]} records Which sessions are to be updated
+  @param {boolean} [isHerding=false] Herding value to store in database
 */
 exports.saveHerding = async function (records, isHerding = false) {
   if (!db) await setup();
@@ -169,6 +203,13 @@ exports.saveHerding = async function (records, isHerding = false) {
   if (settings.benchmark) console.log("Benchmark DB#saveHerding: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Save AI response to table 'user_game_state'
+  @async
+  @deprecated
+  @param {Object} response Data to be stored
+  @param {number} frame_number Frame number on which the calculation was done
+*/
 exports.saveAIResponse = async function (response, frame_number) {
   if (!db) await setup();
   const now = performance.now();
@@ -178,6 +219,11 @@ exports.saveAIResponse = async function (response, frame_number) {
   return ret;
 }
 
+/**
+  @description Get highest clock value from database
+  @async
+  @returns {number}
+*/
 exports.getHighestClock = async function (){
   if (!db) await setup();
   const now = performance.now();
@@ -188,11 +234,17 @@ exports.getHighestClock = async function (){
   if (settings.benchmark) console.log("Benchmark DB#getHighestClock: ", performance.now() - now);
   return maxclock;
 }
+
+/**
+  @description Get all NPCs by searching for is_bot == true
+  @async
+  @returns {userGameSimple[]}
+*/
 exports.getNPCs = async function () {
   if (!db) await setup();
   const now = performance.now();
   const q = `
-  SELECT ug.session_key, ug.group_id, ug.group_order
+  SELECT ug.session_key, ug.group_id, ug.group_order, ug.username
   FROM user_games ug
   WHERE
     ug.is_bot = 1
@@ -201,11 +253,16 @@ exports.getNPCs = async function () {
   if (settings.benchmark) console.log("Benchmark DB#getNPCs: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Get all active NPCs by searching for is_bot == true and is_active == true
+  @async
+  @returns {userGameSimple[]}
+*/
 exports.getActiveNPCs = async function () {
   if (!db) await setup();
   const now = performance.now();
   const q = `
-  SELECT ug.session_key, ug.group_id, ug.group_order
+  SELECT ug.session_key, ug.group_id, ug.group_order, ug.username
   FROM user_games ug
   WHERE
     ug.is_active = 1
@@ -216,11 +273,16 @@ exports.getActiveNPCs = async function () {
   if (settings.benchmark) console.log("Benchmark DB#getActiveNPCs: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Get all active Sessions by searching for is_active == true
+  @async
+  @returns {userGameSimple[]}
+*/
 exports.getActiveSessions = async function () {
   if (!db) await setup();
   const now = performance.now();
   const q = `
-  SELECT ug.session_key, ug.group_id, ug.group_order
+  SELECT ug.session_key, ug.group_id, ug.group_order, ug.username
   FROM user_games ug
   WHERE
     ug.is_active = 1
@@ -229,11 +291,16 @@ exports.getActiveSessions = async function () {
   if (settings.benchmark) console.log("Benchmark DB#getActiveSessions: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Get all active Sessions by searching for is_active == true, order by group
+  @async
+  @returns {userGameSimple[]}
+*/
 exports.getActiveSessionsGroup = async function (groupID) {
   if (!db) await setup();
   const now = performance.now();
   const q = `
-  SELECT ug.session_key, ug.group_id, ug.group_order
+  SELECT ug.session_key, ug.group_id, ug.group_order, ug.username
   FROM user_games ug
   WHERE
     ug.is_active = 1
@@ -241,9 +308,14 @@ exports.getActiveSessionsGroup = async function (groupID) {
     ug.group_id = ?
   ORDER BY ug.group_id, ug.group_order`;
   const ret = await db.all(q, groupID);
-  if (settings.benchmark) console.log("Benchmark DB#getActiveSessions: ", performance.now() - now);
+  if (settings.benchmark) console.log("Benchmark DB#getActiveSessionsGroup: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Get all names occupied by active users
+  @async
+  @returns {string[]}
+*/
 exports.getNames = async function () {
   if (!db) await setup();
   const now = performance.now();
@@ -259,6 +331,11 @@ exports.getNames = async function () {
   if (settings.benchmark) console.log("Benchmark DB#getNames: ", performance.now() - now);
   return ret.map((r)=>r.username);
 }
+/**
+  @description Get session by indexes
+  @async
+  @returns {userGameSimple}
+*/
 exports.getUserByIndexes = async function (groupID, groupOrder){
   if (!db) await setup();
   const now = performance.now();
@@ -275,6 +352,17 @@ exports.getUserByIndexes = async function (groupID, groupOrder){
   if (settings.benchmark) console.log("Benchmark DB#getUserByIndexes: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Insert user session
+  @param {string} sessionKey
+  @param {string} username
+  @param {number} group_id
+  @param {number} group_order
+  @param {boolean} isBot
+  @param {boolean} isActive
+  @param {number} replacesNpc
+  @async
+*/
 exports.insertUserGame = async function(sessionKey, username, group_id, group_order, isBot, isActive, replacesNpc) {
   if (!db) await setup();
   const now = performance.now();
@@ -293,6 +381,17 @@ exports.insertUserGame = async function(sessionKey, username, group_id, group_or
   if (settings.benchmark) console.log("Benchmark DB#insertUserGame: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Insert user data
+  @param {object} records
+  @param {number} records.user_loc_x
+  @param {number} records.user_loc_y
+  @param {number} records.angle
+  @param {number} records.group_id
+  @param {number} records.group_order
+  @param {number} records.frame_number
+  @async
+*/
 exports.insertUserData = async function(records) {
   if (!db) await setup();
   const now = performance.now();
@@ -323,6 +422,14 @@ exports.insertUserData = async function(records) {
   if (settings.benchmark) console.log("Benchmark DB#insertUserData: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Insert NPC session
+  @param {string} sessionKey
+  @param {string} username
+  @param {number} group_id
+  @param {number} group_order
+  @async
+*/
 exports.insertNPCGame = async function(sessionKey, username, group_id, group_order) {
   if (!db) await setup();
   const now = performance.now();
@@ -340,6 +447,17 @@ exports.insertNPCGame = async function(sessionKey, username, group_id, group_ord
   if (settings.benchmark) console.log("Benchmark DB#insertNPCGame: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Insert user data
+  @param {object} records
+  @param {number} records.user_loc_x
+  @param {number} records.user_loc_y
+  @param {number} records.angle
+  @param {number} records.group_id
+  @param {number} records.group_order
+  @param {number} records.frame_number
+  @async
+*/
 exports.insertNPCData = async function(records) {
   if (!db) await setup();
   const now = performance.now();
@@ -370,6 +488,12 @@ exports.insertNPCData = async function(records) {
   if (settings.benchmark) console.log("Benchmark DB#insertNPCData: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Get session by sessionkey
+  @param {string} session_key
+  @async
+  @returns {userGame}
+*/
 exports.getUserSession = async function (session_key) {
   if (!db) await setup();
   const now = performance.now();
@@ -385,6 +509,12 @@ exports.getUserSession = async function (session_key) {
   if (settings.benchmark) console.log("Benchmark DB#getUserSession: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Get session by id
+  @param {string} session_key
+  @async
+  @returns {userGame}
+*/
 exports.getUserSessionID = async function (id) {
   if (!db) await setup();
   const now = performance.now();
@@ -400,6 +530,12 @@ exports.getUserSessionID = async function (id) {
   if (settings.benchmark) console.log("Benchmark DB#getUserSession: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Update session active
+  @param {number} id
+  @param {boolean} isActive
+  @async
+*/
 exports.updateSessionActive = async function (id, isActive){
   if (!db) await setup();
   const now = performance.now();
@@ -409,6 +545,12 @@ exports.updateSessionActive = async function (id, isActive){
   if (settings.benchmark) console.log("Benchmark DB#updateSessionActive: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Update session active by sessionkey
+  @param {string} sessionKey
+  @param {boolean} isActive
+  @async
+*/
 exports.updateSessionActiveKey = async function (sessionKey, isActive){
   if (!db) await setup();
   const now = performance.now();
@@ -418,6 +560,10 @@ exports.updateSessionActiveKey = async function (sessionKey, isActive){
   if (settings.benchmark) console.log("Benchmark DB#updateSessionActiveKey: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Disable all active sessions
+  @async
+*/
 exports.disableUserGames = async function () {
   if (!db) await setup();
   const now = performance.now();
@@ -427,6 +573,10 @@ exports.disableUserGames = async function () {
   if (settings.benchmark) console.log("Benchmark DB#disableUserGames: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Remove all items in table
+  @async
+*/
 exports.truncateTable = async function (tableName) {
   if (!db) await setup();
   const now = performance.now();
@@ -435,6 +585,13 @@ exports.truncateTable = async function (tableName) {
   if (settings.benchmark) console.log("Benchmark DB#truncateTable: ", performance.now() - now);
   return ret;
 }
+/**
+  @description Update indexes for user sessions
+  @param {string} sessionKey
+  @param {number} groupId
+  @param {number} groupOrder
+  @async
+*/
 exports.updateUserGameIndexes = async function (sessionKey, groupId, groupOrder) {
   if (!db) await setup();
   const now = performance.now();
