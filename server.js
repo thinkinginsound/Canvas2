@@ -1,6 +1,7 @@
 /**
  @file server.js
  @description
+  Documentatie voor de server<br>
   De main thread word gestart door node server.js te draaien. Deze thread zorgt
   er voor dat alle andere threads worden gestart. Deze thread aangemaakt door
   de socketcluster library en is NIET bedoeld om in te werken.
