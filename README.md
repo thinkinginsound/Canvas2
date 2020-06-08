@@ -3,7 +3,7 @@ SocketCluster Canvas
 
 Ten opzichte van de [vorige versie](https://github.com/thinkinginsound/THIS-canvas) is dit systeem opgedeeld in meerdere threads.
 
-Documentatie is te vinden in de folder [docs](https://github.com/thinkinginsound/Canvas2/tree/feature/docs/docs/server)
+Documentatie is te vinden in de folder [docs](https://github.com/thinkinginsound/Canvas2/tree/master/docs/server)
 
 ## Threads
 ### Main thread
