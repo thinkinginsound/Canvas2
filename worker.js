@@ -59,7 +59,6 @@ class Worker extends SCWorker {
       let sessionTimeout;
       if (socket.authToken && socket.authToken.sessionkey){
         // Check if session is expired, else set timer
-        console.log("time", socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime())
         let timeRemaining = socket.authToken.sessionstarted + settings.sessionduration - new Date().getTime();
         if (timeRemaining <= 0) {
           socket.authToken = undefined;
@@ -144,10 +143,6 @@ class Worker extends SCWorker {
         initSessionTimeout(settings.sessionduration);
         res();
       });
-      // socket.on('drawpixel', function (data) {
-      //   if (!socket.authToken) return;
-      //   // Sla data op in db
-      // });
 
       /**
        * @module worker
