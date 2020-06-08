@@ -3,6 +3,8 @@ SocketCluster Canvas
 
 Ten opzichte van de [vorige versie](https://github.com/thinkinginsound/THIS-canvas) is dit systeem opgedeeld in meerdere threads.
 
+Documentatie is te vinden in de folder [docs](https://github.com/thinkinginsound/Canvas2/tree/feature/docs/docs/server)
+
 ## Threads
 ### Main thread
 De main thread word gestart door ```node server.js``` te draaien. Deze thread zorgt er voor dat alle andere threads worden gestart. Deze thread aangemaakt door de socketcluster library en is **NIET** bedoeld om in te werken.
