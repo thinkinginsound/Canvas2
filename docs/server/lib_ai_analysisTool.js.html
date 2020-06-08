@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> lib/ai/analysisTool.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                <div class="dropdown is-hoverable is-right">
+                    <a class="dropdown-trigger link">
+                        Tutorials
+                        <i class="fas fa-chevron-down fa-xs"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-content">
+                        
+                        </div>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>lib/ai/analysisTool.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ @module analysisTool
+ @description
+  Calculates herdig behaviour by comparing users
+*/
+
+const settings = require('../settings');
+
+/**
+	@description Function that calculates x and y coordinates to degrees with north as 0
+  @param {number} x X Coordinate
+  @param {number} y Y Coordinate
+  @return {number}
+*/
+function calcDegrees(x,y){
+    if(x == 0 &amp;&amp; y == 0){
+        return -1;
+    } else {
+        return (360 - (Math.atan2(y,x) * (180 / Math.PI)) + 90) % 360;
+    }
+}
+
+/**
+	@description Function that maps degrees to north or south
+  @param {number} Degrees Input to be converted
+  @return {number}
+*/
+function roundDegreesCircle(Degrees){
+    if(Degrees !== -1){
+        let roundedDegrees = Degrees+45;
+        while(roundedDegrees > 45){
+            roundedDegrees -= 45;
+        }
+        if(roundedDegrees > 45/2){
+            roundedDegrees = 45 - roundedDegrees;
+        } else {
+            roundedDegrees = roundedDegrees * -1;
+        }
+        Degrees += roundedDegrees;
+    }
+    return Degrees;
+}
+
+/**
+	@description Calculates the average by comparing the coordinates of first frame to the last.
+  @param {UserInput[]} list Input to be converted
+  @return {number[]}
+*/
+function calculateAverages(list){
+    let averages = [];
+    for(columns = 0; columns &lt; list[0].length; columns++){
+        averages.push(
+            roundDegreesCircle(
+                calcDegrees(list[list.length-1][columns].x - list[0][columns].x, list[list.length-1][columns].y - list[0][columns].y)
+            )
+        );
+    }
+    return averages;
+}
+
+/**
+	@description Calculates herdig behaviour by comparing users
+  @param {number} list Input to be converted
+  @return {number}
+*/
+function findSheep(list){
+    averagesList = calculateAverages(list);
+    let sheep = new Array(settings.maxusers).fill(0); //set to global user amount
+    averagesList.forEach((degree,index)=>{
+        for(herder = 0; herder &lt; averagesList.length; herder++){
+            if(herder != index &amp;&amp; degree == averagesList[herder]) sheep[herder] = 1;
+        }
+    });
+    return sheep;
+}
+
+module.exports = {
+    findSheep : findSheep
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.4</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>

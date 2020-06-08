@@ -1,3 +1,9 @@
+/**
+ @module broker
+ @description
+  Deze thread zorgt voor de communicatie tussen alle processen.
+*/
+
 var SCBroker = require('socketcluster/scbroker');
 var scClusterBrokerClient = require('scc-broker-client');
 
@@ -28,7 +34,12 @@ class Broker extends SCBroker {
       });
     }
 
-    // Ontvangt data vanuit andere processen/threads.
+    /**
+      @function onMasterMessage
+      @description Handle messages send from other processes/threads
+      @property {object} msg Data send by the process
+      @property {function} respond Funtion to be called on success
+    */
     this.on('masterMessage', (msg, respond) => {
       // Verstuur een bericht met ID 'channelname' en data 'msg' :
       // this.publish('channelname', msg);
@@ -51,7 +62,12 @@ class Broker extends SCBroker {
       }
     });
 
-    // Ontvangt data vanuit de CLIENT
+    /**
+      @function onMasterMessage
+      @description Handle messages send from Clients
+      @property {string} channelname Name of channel
+      @property {object} data Data send by the client
+    */
     this.on('publish', (channelname, data) => {
       if (channelname == "clientcom") {
         if (data.id == "drawpixel") db.insertUserData(data.data);

@@ -36,6 +36,11 @@
   "readmeFilename": "README.md",
   "scripts": {
     "start": "node server.js",
-    "start:docker": "node dockerwait.js && node ${SOCKETCLUSTER_MASTER_CONTROLLER:-server.js}"
+    "start:docker": "node dockerwait.js && node ${SOCKETCLUSTER_MASTER_CONTROLLER:-server.js}",
+    "generate-docs": "jsdoc -c jsdoc.json"
+  },
+  "devDependencies": {
+    "better-docs": "^2.0.1",
+    "jsdocs": "^1.0.0"
   }
 }
