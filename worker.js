@@ -37,16 +37,12 @@ class Worker extends SCWorker {
 
     httpServer.on('request', app);
 
-    /**
-     * NOTE: Be sure to replace the following sample logic with your own logic.
-     */
-
-    // Example how to bind a broker channel
-    // const onClockChannel = this.onClockChannel = this.exchange.subscribe("onClock");
-    // onClockChannel.watch((data)=>{
-    //   console.log("Worker onClock received:", data)
-    // })
-
+    /** Example how to bind a broker channel
+      const onClockChannel = this.onClockChannel = this.exchange.subscribe("onClock");
+      onClockChannel.watch((data)=>{
+        console.log("Worker onClock received:", data)
+      })
+    */
     const userStateChannel = this.userStateChannel = this.exchange.subscribe("userState");
 
     /**

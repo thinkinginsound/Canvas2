@@ -78,7 +78,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-simpleNPC.html">simpleNPC</a></li><li><a href="module-slowAnalysis.html">slowAnalysis</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
                 
             </nav>
         </div>
@@ -116,6 +116,11 @@ class boidNPC extends defaultNPC {
       this.outerCircle = 12;
     }
 
+    /**
+    	@description Function that updates the npc's position
+      @param {number} directionX X direction
+      @param {number} directionY Y direction
+    */
     moveSpace(directionX,directionY){
         let newX = this.x;
         let newY = this.y;
@@ -138,6 +143,10 @@ class boidNPC extends defaultNPC {
         this.setPosition(newX,newY)
     }
 
+    /**
+    	@description Move npc randomly
+      @return {number}
+    */
     randomNPCMove(){
         let percentage = Math.floor(Math.random()*100);
         let directionX = 0;
@@ -170,6 +179,12 @@ class boidNPC extends defaultNPC {
         this.moveSpace(directionX,directionY);
     }
 
+    /**
+      @override
+    	@description Function move the npc according to a ruleset
+      @param {UserInput} listofNPC X Coordinate
+      @return {number[]}
+    */
     move(listofNPC){
         if(!this.npc)return;
         let chanceOfunhearding = Math.floor(Math.random()*100);

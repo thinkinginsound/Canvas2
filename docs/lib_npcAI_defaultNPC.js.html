@@ -78,7 +78,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-simpleNPC.html">simpleNPC</a></li><li><a href="module-slowAnalysis.html">slowAnalysis</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
                 
             </nav>
         </div>
@@ -120,10 +120,19 @@ class defaultNPC {
     this.username = username;
   }
 
+  /**
+    @description Default move function. Should be overwritten
+  */
   move(){
     //default
   }
 
+  /**
+    @description Generate sendable from the data of the npc
+    @param {number} groupIndex X Coordinate
+    @param {number} userIndex Y Coordinate
+    @return {Object}
+  */
   save(groupIndex, userIndex){
     let rad = Math.atan2(this.y - this.prevY, this.prevX - this.x);
     let deg = (rad * (180 / Math.PI) + 180) % 360;
@@ -139,6 +148,12 @@ class defaultNPC {
     return sendable;
   }
 
+  /**
+    @description Set the npc's position
+    @param {number} x X Coordinate
+    @param {number} y Y Coordinate
+    @return {number}
+  */
   setPosition(x, y){
     this.xPos = x;
     this.yPos = y;

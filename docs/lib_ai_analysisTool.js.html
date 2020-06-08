@@ -78,7 +78,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-simpleNPC.html">simpleNPC</a></li><li><a href="module-slowAnalysis.html">slowAnalysis</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
                 
             </nav>
         </div>
@@ -98,38 +98,17 @@
             <pre class="prettyprint source linenums"><code>/**
  @module analysisTool
  @description
-  meh
+  Calculates herdig behaviour by comparing users
 */
 
 const settings = require('../settings');
 
-let testList = [
-    [
-        [0,1],
-        [1,2],
-        [8,8],
-        [6,9],
-    ],
-    [
-        [1,2],
-        [2,3],
-        [8,8],
-        [6,9],
-    ],
-    [
-        [2,3],
-        [2,3],
-        [8,8],
-        [6,9],
-    ],
-    [
-        [3,3],
-        [3,4],
-        [8,8],
-        [6,9],
-    ],
-]
-
+/**
+	@description Function that calculates x and y coordinates to degrees with north as 0
+  @param {number} x X Coordinate
+  @param {number} y Y Coordinate
+  @return {number}
+*/
 function calcDegrees(x,y){
     if(x == 0 &amp;&amp; y == 0){
         return -1;
@@ -138,6 +117,11 @@ function calcDegrees(x,y){
     }
 }
 
+/**
+	@description Function that maps degrees to north or south
+  @param {number} Degrees Input to be converted
+  @return {number}
+*/
 function roundDegreesCircle(Degrees){
     if(Degrees !== -1){
         let roundedDegrees = Degrees+45;
@@ -154,13 +138,14 @@ function roundDegreesCircle(Degrees){
     return Degrees;
 }
 
+/**
+	@description Calculates the average by comparing the coordinates of first frame to the last.
+  @param {UserInput[]} list Input to be converted
+  @return {number[]}
+*/
 function calculateAverages(list){
-    let total = 0;
-    let frequency = 0;
     let averages = [];
     for(columns = 0; columns &lt; list[0].length; columns++){
-        total = 0;
-        frequency = 0;
         averages.push(
             roundDegreesCircle(
                 calcDegrees(list[list.length-1][columns].x - list[0][columns].x, list[list.length-1][columns].y - list[0][columns].y)
@@ -170,6 +155,11 @@ function calculateAverages(list){
     return averages;
 }
 
+/**
+	@description Calculates herdig behaviour by comparing users
+  @param {number} list Input to be converted
+  @return {number}
+*/
 function findSheep(list){
     averagesList = calculateAverages(list);
     let sheep = new Array(settings.maxusers).fill(0); //set to global user amount
