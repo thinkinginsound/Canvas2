@@ -1,0 +1,225 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> lib/timerProcess.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                <div class="dropdown is-hoverable is-right">
+                    <a class="dropdown-trigger link">
+                        Tutorials
+                        <i class="fas fa-chevron-down fa-xs"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-content">
+                        
+                        </div>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-aiFunctions.html">aiFunctions</a></li><li><a href="module-aiProcess.html">aiProcess</a></li><li><a href="module-analysisTool.html">analysisTool</a></li><li><a href="module-broker.html">broker</a></li><li><a href="module-db.html">db</a></li><li><a href="module-namebuilder.html">namebuilder</a></li><li><a href="module-timerProcess.html">timerProcess</a></li><li><a href="module-worker.html">worker</a></li></ul><h3>Classes</h3><ul><li><a href="boidNPC.html">boidNPC</a></li><li><a href="defaultNPC.html">defaultNPC</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>lib/timerProcess.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ @module timerProcess
+ @description
+ Process that handles the clock
+*/
+
+const { performance } = require('perf_hooks');
+
+const settings = require('./settings');
+const db = require("./db");
+const NPC = require("./npcAI/boidNPC").boidNPC;
+
+const namebuilder = require("./namebuilder/builder.js").namebuilder;
+const players = {}
+let frameCount = -1;
+
+/**
+	@description Initalizes the timer.
+*/
+async function initTimer(){
+  frameCount = await db.getHighestClock();
+  await db.disableUserGames();
+  await initNPCs();
+  setInterval(async () => {
+	  process.send({type:"onClock", payload:frameCount});
+    npcMove();
+    broadcast("clock",frameCount);
+    frameCount++;
+
+  }, settings.clockspeed);
+}
+
+/**
+	@description Initializes the NPCs. These are stored in variable 'players', and stored in the database as sessions.
+*/
+async function initNPCs(){
+  for(let groupIndex = 0; groupIndex &lt; settings.maxgroups; groupIndex++){
+    for(let playerIndex = 0; playerIndex &lt; settings.maxusers; playerIndex++){
+      let index = (playerIndex + (settings.maxgroups * groupIndex))
+      let username = await namebuilder();
+      players[`npc_${index}`] = new NPC(
+        settings.canvaswidth,
+        settings.canvasheight,
+        Math.floor(Math.random() * settings.canvaswidth),
+        Math.floor(Math.random() * settings.canvasheight),
+        `npc_${index}`,
+        username
+      );
+      await db.insertNPCGame(`npc_${index}`, username, groupIndex, playerIndex);
+    }
+  }
+}
+
+/**
+	@description Moves all NPCs that are not being replaced by users.
+*/
+async function npcMove(){
+  const now = performance.now();
+  let activeNPCs = await db.getActiveNPCs();
+  let npcStates = await db.getNPCs();
+
+  let sortedNPCs = [];
+  for (let npc of npcStates) {
+    if (!sortedNPCs[npc.group_id]) sortedNPCs[npc.group_id] = []
+    sortedNPCs[npc.group_id][npc.group_order] = players[npc.session_key];
+  };
+
+  activeNPCs.forEach(async (itm)=>{
+    setTimeout(()=>{
+      players[itm.session_key].move(sortedNPCs[itm.group_id]);
+      let sendable = players[itm.session_key].save(itm.group_id, itm.group_order);
+      sendable.frame_number = frameCount;
+      broadcast("drawpixel",sendable)
+      db.insertNPCData(sendable);
+    }, Math.random()*settings.clockspeed)
+  })
+  if (settings.benchmark) console.log("Benchmark TIMER#npcMove: ", performance.now() - now);
+}
+
+/**
+	@description Sends data to the broker
+  @param {string} id ID van het bericht
+  @param {object} payload Data die wordt meegestuurd
+*/
+function broadcast (id, payload) {
+	process.send({type:"broadcast", id:id, payload:payload});
+}
+/**
+  @function TimerProcessOn 
+	@description Receives data from the broker
+*/
+process.on('message', (msg)=>{
+	if (msg.type == "initTimer") initTimer();
+})
+
+
+module.exports = {
+  initTimer : initTimer
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.4</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>
