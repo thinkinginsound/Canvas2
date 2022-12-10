@@ -15,7 +15,7 @@
   "dependencies": {
     "chart.js": "^2.9.3",
     "crypto": "^1.0.1",
-    "express": "4.16.4",
+    "express": "4.17.3",
     "minimist": "1.2.3",
     "morgan": "1.9.1",
     "sc-framework-health-check": "2.0.0",
